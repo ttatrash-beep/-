@@ -8,8 +8,8 @@
     <!-- Open Graph Tags – תוקן ל-URL נקי וללא תווים עבריים -->
     <meta property="og:title" content="עטרת שלמה - המעטפת הכלכלית המובילה לבני התורה ואברכים">
     <meta property="og:description" content="הצטרפו למהפכת הרווחה של עטרת שלמה. הטבות בלעדיות, הסדרים במיטב הרשתות וקרן חתנים מפוארת - הכל בכבוד וביוקרה המגיעים לעמלי התורה.">
-    <meta property="og:image" content="https://www.ttas.org.il/logo.png"> <!-- שנה את שם הקובץ ל-logo.png (ללא עברית) והעלה אותו מחדש -->
-    <meta property="og:url" content="https://www.ttas.org.il">
+    <meta property="og:image" content="https://yourdomain.com/logo.png"> <!-- שנה את שם הקובץ ל-logo.png (ללא עברית) והעלה אותו מחדש -->
+    <meta property="og:url" content="https://yourdomain.com">
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
@@ -79,7 +79,7 @@
         }
         .shop-card:hover { transform: translateY(-10px); box-shadow: 0 8px 30px rgba(197,160,89,0.2); }
         .shop-card .cat-tag { position: absolute; top: 0; left: 0; background: var(--gold); color: white; padding: 5px 15px; font-size: 0.8rem; font-weight: 800; border-radius: 0 0 15px 0; }
-        .shop-card h3 { margin-top: 20px; font-size: 1.5rem; color: var(--text-dark); }
+        .shop-card h2 { margin-top: 20px; font-size: 1.5rem; color: var(--text-dark); }
         .shop-card .price { font-size: 1.2rem; color: var(--gold-dark); margin: 15px 0; font-weight: 700; }
         .shop-card .instruction { font-size: 0.9rem; color: #666; border-top: 1px solid var(--shadow); padding-top: 15px; margin-top: 15px; }
         .empty-state { grid-column: 1 / -1; text-align: center; padding: 80px 20px; color: #666; font-size: 1.3rem; }
@@ -91,41 +91,86 @@
         .faq-box.active p { display: block; }
         footer { text-align: center; padding: 80px 10%; border-top: 1px solid var(--shadow); margin-top: 100px; background: var(--white); font-size: 0.9rem; color: #666; }
         .footer-logo { height: 80px; width: auto; opacity: 0.8; margin-bottom: 20px; }
+        .footer-links { margin-top: 20px; }
         .footer-links a { color: var(--gold-dark); text-decoration: none; margin: 0 10px; }
         .footer-links a:hover { text-decoration: underline; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 2000; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
         .modal-overlay.show { display: flex; opacity: 1; }
-        .modal-content { background: var(--white); border: 1px solid var(--gold); border-radius: 20px; padding: 40px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 15px 40px var(--shadow); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-content {
+            background: var(--white); border: 1px solid var(--gold);
+            border-radius: 20px; padding: 40px; max-width: 500px; width: 90%;
+            text-align: center; box-shadow: 0 15px 40px var(--shadow);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
         .modal-overlay.show .modal-content { transform: scale(1); }
-        #backToTop { position: fixed; bottom: 20px; right: 20px; background: var(--gold); color: white; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: var(--transition); z-index: 1000; }
+        .modal-icon { font-size: 3rem; margin-bottom: 20px; color: var(--gold-dark); }
+        .modal-title { font-family: 'Playfair Display'; color: var(--gold-dark); font-size: 2rem; margin-bottom: 15px; }
+        .modal-text { font-size: 1.1rem; margin-bottom: 30px; color: #666; }
+        .modal-buttons { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .btn-cancel { background: transparent; color: var(--text-dark); border: 1px solid var(--shadow); padding: 10px 25px; border-radius: 50px; cursor: pointer; transition: var(--transition); }
+        .btn-cancel:hover { background: var(--glass); border-color: var(--gold); }
+        #backToTop {
+            position: fixed; bottom: 20px; right: 20px; background: var(--gold); color: var(--white);
+            border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; opacity: 0; transition: var(--transition); z-index: 1000;
+        }
         #backToTop.show { opacity: 1; }
         .hamburger { display: none; font-size: 2rem; cursor: pointer; color: var(--text-dark); }
-
-        /* רספונסיביות אגרסיבית – Above the Fold מושלם */
+        @media (max-width: 1024px) {
+            .hero h1 { font-size: 4rem; }
+            .hero p { font-size: 1.5rem; }
+            .values-section { grid-template-columns: repeat(2, 1fr); }
+            .filter-grid { grid-template-columns: 1fr 1fr; }
+        }
         @media (max-width: 768px) {
+            section { padding: 80px 5%; }
             .hero { min-height: calc(100vh - 60px); padding: 15px 5%; }
-            .hero img { max-width: 140px; margin-bottom: 15px; }
-            .hero h1 { font-size: 2.8rem; }
-            .hero p { font-size: 1.25rem; margin-bottom: 30px; }
-            .hero-buttons button { width: 100%; }
-            .nav-links { display: none; flex-direction: column; position: absolute; top: 70px; right: 0; background: white; width: 100%; padding: 20px; gap: 20px; box-shadow: 0 4px 20px var(--shadow); }
+            .hero img { max-width: 150px; }
+            .hero h1 { font-size: 3rem; }
+            .hero p { font-size: 1.3rem; }
+            .hero-buttons { flex-direction: column; gap: 15px; }
+            .values-section { grid-template-columns: 1fr; }
+            .stats-bar { flex-direction: column; padding: 40px 0; }
+            .filter-grid { grid-template-columns: 1fr; gap: 15px; }
+            .arr-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; flex-direction: column; position: absolute; top: 70px; right: 0; background: var(--white); width: 100%; padding: 20px; gap: 20px; box-shadow: 0 4px 20px var(--shadow); align-items: center; }
             .nav-links.active { display: flex; }
+            .nav-link:not(:last-child) { border-bottom: 1px solid var(--shadow); padding-bottom: 10px; width: 100%; text-align: center; }
             .hamburger { display: block; }
             .logo-img { height: 50px; }
-            section { padding: 80px 5%; }
+            .btn-donate, .btn-secondary { width: 100%; justify-content: center; }
         }
         @media (max-width: 480px) {
-            .hero h1 { font-size: 2.4rem; }
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1.1rem; }
+            nav { padding: 10px 5%; }
+            .logo-img { height: 40px; }
             .hero img { max-width: 120px; }
         }
     </style>
-    <!-- Google Analytics -->
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-MP1722X6P5"></script>
-    <script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-MP1722X6P5');</script>
-    <!-- HTTP → HTTPS -->
-    <script>if (window.location.protocol !== "https:") window.location.href = "https:" + window.location.href.substring(window.location.protocol.length);</script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+   
+      gtag('config', 'G-MP1722X6P5');
+    </script>
+    <!-- הפנייה אוטומטית ל-HTTPS -->
+    <script>
+        if (window.location.protocol !== "https:") {
+            window.location.href = "https:" + window.location.href.substring(window.location.protocol.length);
+        }
+    </script>
 </head>
 <body>
+
 <div class="bg-glow"></div>
 <nav role="navigation">
     <img src="logo.png" alt="לוגו עטרת שלמה" class="logo-img" onclick="showSection('home')">
@@ -142,7 +187,7 @@
 <main id="main-content">
     <section id="home" class="active">
         <div class="hero">
-            <img src="logo.png" alt="לוגו עטרת שלמה">
+            <img src="logo.png" alt="לוגו עטרת שלמה" style="max-width: 200px; display: block; margin: 0 auto 20px;">
             <h1>עטרת שלמה</h1>
             <p>מעטפת של חסד, יוקרה ורווחה לבני הישיבות והאברכים</p>
             <div class="hero-buttons">
@@ -150,12 +195,38 @@
                 <button class="btn-secondary" onclick="openDonateModal()"><i class="fas fa-donate"></i> לתרומה מאובטחת</button>
             </div>
         </div>
-        <!-- שאר תוכן דף הבית -->
-        <div class="values-section"> ... (אותו קוד כמו קודם) </div>
-        <div class="stats-bar" id="statsBar"> ... </div>
-        <div class="about-detailed"> ... </div>
+        <div class="values-section">
+            <div class="value-card">
+                <h2>כבוד הלומד</h2>
+                <p>אנו מאמינים כי הסיוע חייב להינתן בסטנדרט הגבוה ביותר, תוך שמירה מלאה על פרטיות וכבוד בני התורה.</p>
+            </div>
+            <div class="value-card">
+                <h2>כוח קהילתי</h2>
+                <p>מינוף הכוח של מאות לומדים ליצירת הסדרים צרכניים חסרי תקדים מול מיטב המותגים והספקים.</p>
+            </div>
+            <div class="value-card">
+                <h2>שקט נפשי</h2>
+                <p>היעד שלנו הוא להסיר את דאגות הפרנסה מהלומדים, כדי שיוכלו להשקיע את כל מרצם בעמל התורה.</p>
+            </div>
+        </div>
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item"><h2 class="stat-counter" data-target="10" data-prefix="" data-suffix="+">0</h2><p>שנות פעילות</p></div>
+            <div class="stat-item"><h2 class="stat-counter" data-target="180000" data-prefix="₪" data-suffix="">0</h2><p>מחזור חסד שנתי</p></div>
+            <div class="stat-item"><h2 class="stat-counter" data-target="40" data-prefix="" data-suffix="+">0</h2><p>בתי עסק בהסדר</p></div>
+        </div>
+        <div class="about-detailed">
+            <h2 style="font-family: 'Playfair Display'; font-size: 3rem; color: var(--gold-dark); margin-bottom: 30px; text-align: center;">הבית של בני התורה</h2>
+            <p>עמותת "ת"ת עטרת שלמה (ע"ר)" נוסדה לפני למעלה מעשור מתוך חזון ברור: להוות זרוע תמיכה חזקה ויציבה עבור עמלי התורה. מאז ועד היום, אנו פועלים ללא הפסקה כדי להוזיל את יוקר המחיה עבור בחורי הישיבה והאברכים.</p>
+            <div class="highlight-box">
+                <h3 style="color: var(--gold-dark);">מהפכת קרן החתנים</h3>
+                <p>אנו מבינים את העומס הכבד המונח על כתפי החתן ביום שמחתו. לכן, הקמנו מערך ייחודי המעניק לחתן ביגוד מלא לחיים שאחרי החתונה – בצורה מכובדת, פרימיום ומרגשת, כדי שיכנס לחופה מתוך רווחה אמיתית.</p>
+            </div>
+            <div class="highlight-box" style="border-right-color: var(--gold);">
+                <h3 style="color: var(--gold-dark);">חדר הת"ת - מחירים ללא תחרות</h3>
+                <p>חדר הביגוד של הישיבה הפך לשם דבר. אנו מציעים שם את מיטב פריטי הלבוש והציוד במחירים שהם הרבה מתחת למחירי השוק. מדובר בחיסכון ישיר של אלפי שקלים בשנה לכל בחור.</p>
+            </div>
+        </div>
     </section>
-
     <section id="arrangements">
         <div style="text-align: center; margin-bottom: 50px;">
             <h2 style="font-family: 'Playfair Display'; font-size: 4rem; color: var(--gold-dark);">רשימת הסדרים</h2>
@@ -163,18 +234,60 @@
         </div>
         <div class="filter-header">
             <div class="filter-grid">
-                <input type="text" id="searchInput" class="input-style" placeholder="חפש חנות או מוצר..." onkeyup="filterItems()">
-                <select id="catFilter" class="input-style" onchange="filterItems()"></select>
-                <select id="cityFilter" class="input-style" onchange="filterItems()"></select>
+                <input type="text" id="searchInput" class="input-style" placeholder="חפש חנות או מוצר (למשל: שטרן, חליפה, נעליים...)" onkeyup="filterItems()">
+                <select id="catFilter" class="input-style" onchange="filterItems()">
+                    <option value="all">כל הקטגוריות</option>
+                </select>
+                <select id="cityFilter" class="input-style" onchange="filterItems()">
+                    <option value="all">כל הערים</option>
+                </select>
             </div>
         </div>
         <div id="arrGrid" class="arr-grid"></div>
     </section>
-
-    <!-- שאר הסקשנים (about, faq, accessibility, privacy) – כותרות h2 במקום h1 -->
-    <!-- ... אותו קוד כמו קודם עם h2 במקום h1 בכל הסקשנים ... -->
+    <section id="about">
+        <div class="about-detailed">
+            <h2 style="color: var(--gold-dark); text-align: center; margin-bottom: 40px;">אחריות ושקיפות</h2>
+            <p>העמותה מנוהלת תחת בקרה קפדנית ובשקיפות מלאה. כל שקל שנתרם או מגלוגל בפעילות מיועד אך ורק לטובת רווחת הלומדים.</p>
+            <p>אנו גאים להיות הגוף שמעניק את הגב הכלכלי לבני התורה כבר מעל 10 שנים, וממשיכים לפתח בכל עת הסדרים חדשים ושירותים משופרים.</p>
+        </div>
+    </section>
+    <section id="faq">
+        <div class="faq-container">
+            <h2 style="text-align: center; color: var(--gold-dark); margin-bottom: 50px; font-size: 3rem;">שאלות ותשובות</h2>
+            <div class="faq-box" onclick="this.classList.toggle('active')">
+                <h3>אני בעל עסק ואני רוצה להיות שותף במהפכה?</h3>
+                <p>בוודאי! הזכות היא שלנו. בעלי עסקים המעוניינים להעניק תנאים מועדפים לבני הישיבה ולהצטרף למערך ההסדרים מוזמנים לפנות לראש הת"ת לתיאום.</p>
+            </div>
+            <div class="faq-box" onclick="this.classList.toggle('active')">
+                <h3>איך ניתן לקבל שובר הנחה לחנויות?</h3>
+                <p>ניתן לקבל שוברים פיזיים במשרד הת"ת בישיבה בשעות הפעילות, או בתיאום טלפוני עם האחראים בהתאם למצוין בפרטי החנות.</p>
+            </div>
+            <div class="faq-box" onclick="this.classList.toggle('active')">
+                <h3>מי זכאי לרכישה בחדר הביגוד של הת"ת?</h3>
+                <p>הרכישה מיועדת לבני הישיבה בלבד, בהצגת כרטיס או בתיאום עם האחראים, כדי להבטיח שהסבסוד העמוק יגיע ליעדו.</p>
+            </div>
+            <div class="faq-box" onclick="this.classList.toggle('active')">
+                <h3>האם יש הטבות מיוחדות לחתנים מעבר לרשימה?</h3>
+                <p>כן, חתנים זכאים למעטפת מורחבת של קרן החתנים הכוללת ביגוד מלא לחיים שאחרי החתונה. מומלץ לפנות להנהלה מיד לאחר האירוסין.</p>
+            </div>
+        </div>
+    </section>
+    <section id="accessibility">
+        <h2 style="text-align: center; color: var(--gold-dark); margin-bottom: 50px;">הצהרת נגישות</h2>
+        <div class="about-detailed">
+            <p>האתר עודכן בהתאם לתקן WCAG 2.1 AA, כולל תיקון ניגודיות צבעים, היררכיית כותרות, תגיות alt לתמונות, ושימוש בציוני דרך סמנטיים.</p>
+            <p>רכז נגישות: שם: [שם רכז], טלפון: [מספר], מייל: [מייל].</p>
+            <p>תאריך עדכון ההצהרה: 26 בפברואר 2026.</p>
+        </div>
+    </section>
+    <section id="privacy">
+        <h2 style="text-align: center; color: var(--gold-dark); margin-bottom: 50px;">מדיניות פרטיות</h2>
+        <div class="about-detailed">
+            <p>האתר משתמש בעוגיות (Cookies) של Google Analytics לצורך ניתוח סטטיסטי בלבד. אין שמירת פרטי אשראי; הסליקה מבוצעת חיצונית ע"י "נדרים פלוס".</p>
+        </div>
+    </section>
 </main>
-
 <footer role="contentinfo">
     <img src="logo.png" alt="לוגו עטרת שלמה" class="footer-logo">
     <p>מעל עשור של חסד ורווחה לעמלי התורה</p>
@@ -185,19 +298,26 @@
     </div>
     <p style="margin-top: 40px;">&copy; 2026 כל הזכויות שמורות לעמותת ת"ת עטרת שלמה (ע"ר)</p>
 </footer>
-
-<!-- Modal + BackToTop -->
-
+<div id="donateModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-icon"><i class="fas fa-lock"></i></div>
+        <h2 class="modal-title">מעבר לתרומה מאובטחת</h2>
+        <p class="modal-text">הנך מועבר כעת למערכת הסליקה המאובטחת של "נדרים פלוס". פעילותנו מתאפשרת בזכות השותפות שלך!</p>
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeDonateModal()">ביטול</button>
+            <a href="https://www.matara.pro/nedarimplus/online/?mosad=7016933" target="_blank" class="btn-donate" onclick="closeDonateModal()" style="text-decoration:none; display:inline-block; padding: 10px 25px;"><i class="fas fa-arrow-right"></i> המשך לתרומה</a>
+        </div>
+    </div>
+</div>
+<div id="backToTop" onclick="scrollToTop()"><i class="fas fa-arrow-up"></i></div>
 <script>
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRhzwU8YgPWoaIOVp9pSaKjdq8sO4OzAYxDsIiDqTLd9na3M1KVr3oPV4tvQ85y7chufAKTfQ8ghKMH/pub?output=csv';
+
     let allShops = [];
     let shopsLoaded = false;
 
     async function fetchShops() {
-        if (shopsLoaded) {
-            renderArrangements(allShops);
-            return;
-        }
+        if (shopsLoaded) return;
         try {
             const response = await fetch(csvUrl);
             const csvText = await response.text();
@@ -205,7 +325,9 @@
             shopsLoaded = true;
             renderArrangements(allShops);
             populateFilters(allShops);
-        } catch (e) { console.error(e); }
+        } catch (error) {
+            console.error('שגיאה בטעינת נתונים:', error);
+        }
     }
 
     function parseCSV(csv) {
@@ -213,13 +335,13 @@
         const headers = lines[0].split(',');
         const shops = [];
         for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue;
+            if (lines[i].trim() === '') continue;
             const values = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
             const shop = {};
-            headers.forEach((header, idx) => {
-                let val = values[idx] ? values[idx].trim() : '';
-                val = val.replace(/^"|"$/g, '').replace(/""/g, '"');
-                shop[header.trim()] = val;
+            headers.forEach((header, index) => {
+                let value = values[index] ? values[index].trim() : '';
+                value = value.replace(/^"|"$/g, '').replace(/""/g, '"');
+                shop[header.trim()] = value;
             });
             shops.push(shop);
         }
@@ -229,26 +351,23 @@
     function showSection(id) {
         document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        if (id === 'arrangements') {
-            if (!shopsLoaded) fetchShops();
-            else filterItems();
-        }
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        if (id === 'arrangements') fetchShops().then(() => filterItems());
     }
 
-    function renderArrangements(data) {
+    function renderArrangements(shops) {
         const grid = document.getElementById('arrGrid');
         grid.innerHTML = '';
-        if (data.length === 0) {
-            grid.innerHTML = `<div class="empty-state">לא נמצאו חנויות התואמות את החיפוש שלך.<br>נסה לשנות את הסינונים.</div>`;
+        if (shops.length === 0) {
+            grid.innerHTML = '<div class="empty-state">לא נמצאו תוצאות. נסה לשנות את הסינונים או החיפוש.</div>';
             return;
         }
-        data.forEach(shop => {
+        shops.forEach(shop => {
             const card = document.createElement('div');
             card.className = 'shop-card';
             card.innerHTML = `
                 <span class="cat-tag">${shop.cat}</span>
-                <h3>${shop.name}</h3>
+                <h2>${shop.name}</h2>
                 <p style="font-size:0.8rem; color:#666;">📍 ${shop.city}</p>
                 <p class="price">${shop.desc}</p>
                 <div class="instruction">ℹ️ ${shop.note}</div>
@@ -260,49 +379,90 @@
     function populateFilters(shops) {
         const catSelect = document.getElementById('catFilter');
         const citySelect = document.getElementById('cityFilter');
-        catSelect.innerHTML = '<option value="all">כל הקטגוריות</option>';
-        citySelect.innerHTML = '<option value="all">כל הערים</option>';
-        const cats = [...new Set(shops.map(s => s.cat))];
-        const cities = [...new Set(shops.map(s => s.city))];
-        cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; catSelect.appendChild(o); });
-        cities.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; citySelect.appendChild(o); });
+        const cats = new Set();
+        const cities = new Set();
+        shops.forEach(shop => {
+            cats.add(shop.cat);
+            cities.add(shop.city);
+        });
+        cats.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            catSelect.appendChild(option);
+        });
+        cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            citySelect.appendChild(option);
+        });
     }
 
     function filterItems() {
-        const search = document.getElementById('searchInput').value.toLowerCase().trim();
+        const search = document.getElementById('searchInput').value.toLowerCase();
         const cat = document.getElementById('catFilter').value;
         const city = document.getElementById('cityFilter').value;
-        const filtered = allShops.filter(s => 
-            (!search || s.name.toLowerCase().includes(search) || s.desc.toLowerCase().includes(search)) &&
-            (cat === 'all' || s.cat === cat) &&
-            (city === 'all' || s.city.includes(city))
+        const filtered = allShops.filter(shop => 
+            (shop.name.toLowerCase().includes(search) || shop.desc.toLowerCase().includes(search)) &&
+            (cat === 'all' || shop.cat === cat) &&
+            (city === 'all' || shop.city.includes(city))
         );
         renderArrangements(filtered);
     }
 
-    // Stats animation + modal + menu + backToTop – אותו קוד כמו קודם
-
     let statsAnimated = false;
-    const statsObserver = new IntersectionObserver(e => {
-        if (e[0].isIntersecting && !statsAnimated) { statsAnimated = true; animateStats(); }
+    const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !statsAnimated) {
+            statsAnimated = true;
+            animateStats();
+        }
     });
-    statsObserver.observe(document.getElementById('statsBar'));
+    observer.observe(document.getElementById('statsBar'));
 
-    function animateStats() { /* אותו קוד */ }
+    function animateStats() {
+        const counters = document.querySelectorAll('.stat-counter');
+        counters.forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            const prefix = counter.getAttribute('data-prefix');
+            const suffix = counter.getAttribute('data-suffix');
+            let count = 0;
+            const inc = target / 30;
+            const updateCount = () => {
+                count += inc;
+                if (count < target) {
+                    counter.innerText = prefix + Math.ceil(count) + suffix;
+                    requestAnimationFrame(updateCount);
+                } else {
+                    counter.innerText = prefix + target + suffix;
+                }
+            };
+            updateCount();
+        });
+    }
 
     const modal = document.getElementById('donateModal');
     function openDonateModal() { modal.classList.add('show'); }
     function closeDonateModal() { modal.classList.remove('show'); }
-    window.onclick = e => { if (e.target === modal) closeDonateModal(); };
-    function toggleMenu() { document.getElementById('navLinks').classList.toggle('active'); }
-    function scrollToTop() { window.scrollTo({top: 0, behavior: 'smooth'}); }
-    window.onscroll = () => {
-        const btn = document.getElementById('backToTop');
-        btn.classList.toggle('show', window.scrollY > 200);
+    window.onclick = function(event) { if (event.target == modal) closeDonateModal(); }
+    function toggleMenu() {
+        document.getElementById('navLinks').classList.toggle('active');
+    }
+    function scrollToTop() {
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+    window.onscroll = function() {
+        const backToTop = document.getElementById('backToTop');
+        if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+            backToTop.classList.add('show');
+        } else {
+            backToTop.classList.remove('show');
+        }
     };
     window.onload = () => {
         document.querySelectorAll('section').forEach(s => s.style.animation = 'fadeIn 0.8s forwards');
     };
 </script>
+
 </body>
 </html>
