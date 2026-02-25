@@ -33,22 +33,21 @@
         }
         .logo-img {
             height: 60px; width: auto; cursor: pointer;
-            filter: sepia(100%) saturate(300%) brightness(90%) hue-rotate(355deg);
             transition: var(--transition);
         }
-        .logo-img:hover { filter: sepia(100%) saturate(400%) brightness(110%) hue-rotate(355deg); }
+        .logo-img:hover { transform: scale(1.05); }
         .nav-links { display: flex; gap: 30px; align-items: center; }
         .nav-link { color: var(--text-dark); text-decoration: none; font-weight: 600; cursor: pointer; transition: var(--transition); font-size: 1.1rem; }
         .nav-link:hover { color: var(--gold); }
         .btn-donate {
-            background: var(--gold); color: var(--white); padding: 12px 30px; border-radius: 50px;
+            background: var(--gold); color: var(--white); padding: 16px 30px; border-radius: 50px;
             font-weight: 800; cursor: pointer; border: none; font-size: 1.1rem; transition: var(--transition);
             display: flex; align-items: center; gap: 8px; white-space: nowrap;
         }
         .btn-donate:hover { transform: scale(1.05); box-shadow: 0 5px 20px rgba(197, 160, 89, 0.3); }
         .btn-secondary {
             background: transparent; border: 2px solid var(--gold); color: var(--gold);
-            padding: 12px 30px; border-radius: 50px; font-weight: 800; cursor: pointer;
+            padding: 16px 30px; border-radius: 50px; font-weight: 800; cursor: pointer;
             font-size: 1.1rem; transition: var(--transition); display: flex; align-items: center; gap: 8px; white-space: nowrap;
         }
         .btn-secondary:hover { background: var(--gold); color: var(--white); }
@@ -93,7 +92,7 @@
         .faq-box p { margin-top: 15px; color: #666; display: none; }
         .faq-box.active p { display: block; }
         footer { text-align: center; padding: 80px 10%; border-top: 1px solid var(--shadow); margin-top: 100px; background: var(--white); }
-        .footer-logo { height: 80px; width: auto; filter: sepia(100%) saturate(300%) brightness(80%) hue-rotate(355deg); opacity: 0.8; margin-bottom: 20px; }
+        .footer-logo { height: 80px; width: auto; opacity: 0.8; margin-bottom: 20px; }
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px);
@@ -139,6 +138,7 @@
             .arr-grid { grid-template-columns: 1fr; }
             .nav-links { display: none; flex-direction: column; position: absolute; top: 70px; right: 0; background: var(--white); width: 100%; padding: 20px; gap: 20px; box-shadow: 0 4px 20px var(--shadow); align-items: center; }
             .nav-links.active { display: flex; }
+            .nav-link:not(:last-child) { border-bottom: 1px solid var(--shadow); padding-bottom: 10px; width: 100%; text-align: center; }
             .hamburger { display: block; }
             .logo-img { height: 50px; }
             .btn-donate, .btn-secondary { width: 100%; justify-content: center; }
@@ -165,11 +165,11 @@
 <nav>
     <img src="logo.png" alt="לוגו עטרת שלמה" class="logo-img" onclick="showSection('home')">
     <div class="nav-links" id="navLinks">
-        <span class="nav-link" onclick="showSection('home')">דף הבית</span>
-        <span class="nav-link" onclick="showSection('arrangements')">רשימת הסדרים</span>
-        <span class="nav-link" onclick="showSection('about')">אודות</span>
-        <span class="nav-link" onclick="showSection('faq')">שאלות ותשובות</span>
-        <button class="btn-donate" onclick="openDonateModal()"><i class="fas fa-heart"></i> לתרומות</button>
+        <span class="nav-link" onclick="showSection('home'); toggleMenu()">דף הבית</span>
+        <span class="nav-link" onclick="showSection('arrangements'); toggleMenu()">רשימת הסדרים</span>
+        <span class="nav-link" onclick="showSection('about'); toggleMenu()">אודות</span>
+        <span class="nav-link" onclick="showSection('faq'); toggleMenu()">שאלות ותשובות</span>
+        <button class="btn-donate" onclick="openDonateModal(); toggleMenu()"><i class="fas fa-heart"></i> לתרומות</button>
     </div>
     <div class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
 </nav>
