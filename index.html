@@ -1,6 +1,50 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+  <style>
+        /* חסימה מיידית של תוכן האתר */
+        body { display: none !important; }
+    </style>
+
+    <script>
+    (function() {
+        const MY_PASSWORD = "1234"; // <--- כאן אתה קובע את הסיסמה
+
+        function initLock() {
+            if (sessionStorage.getItem('site_access_granted') === 'true') {
+                const s = document.createElement('style');
+                s.innerHTML = 'body { display: block !important; }';
+                document.head.appendChild(s);
+                return;
+            }
+
+            window.addEventListener('DOMContentLoaded', () => {
+                document.documentElement.innerHTML = `
+                <dir dir="rtl" style="margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; background:#2c3e50; font-family:sans-serif;">
+                    <div style="background:white; padding:40px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.3); text-align:center; width:320px;">
+                        <div style="font-size:50px; margin-bottom:20px;">🔒</div>
+                        <h2 style="color:#333; margin-bottom:10px;">דף מוגן</h2>
+                        <p style="color:#666; margin-bottom:20px; font-size:14px;">הגישה לאתר זה דורשת סיסמה</p>
+                        <input type="password" id="p_input" placeholder="הקלד סיסמה..." style="width:100%; padding:12px; margin-bottom:15px; border:2px solid #ddd; border-radius:8px; font-size:18px; text-align:center; outline:none;">
+                        <button onclick="validate()" style="width:100%; padding:12px; background:#27ae60; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px;">כניסה לאתר</button>
+                        <p id="err_msg" style="color:#e74c3c; font-size:13px; margin-top:15px; display:none; font-weight:bold;">⚠️ סיסמה שגויה!</p>
+                    </div>
+                </dir>`;
+            });
+        }
+
+        window.validate = function() {
+            const val = document.getElementById('p_input').value;
+            if (val === MY_PASSWORD) {
+                sessionStorage.setItem('site_access_granted', 'true');
+                location.reload();
+            } else {
+                document.getElementById('err_msg').style.display = 'block';
+            }
+        };
+        initLock();
+    })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>עטרת שלמה | מעטפת כלכלית והטבות לבני ישיבות ואברכים</title>
