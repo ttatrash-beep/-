@@ -148,6 +148,11 @@
             .hamburger { display: block; }
             .logo-img { height: 50px; }
             .btn-donate, .btn-secondary { width: 100%; justify-content: center; }
+            /* ביטול הצמדת שורת החיפוש בנייד */
+            .filter-header {
+            position: static !important; /* גורם לה להיעלם למעלה עם הגלילה */
+            box-shadow: none;
+        }
         }
         @media (max-width: 480px) {
             .hero h1 { font-size: 2.5rem; }
@@ -444,7 +449,18 @@
             updateCount();
         });
     }
+ function toggleFaq(element) {
+        const allFaqs = document.querySelectorAll('.faq-box');
+        const isActive = element.classList.contains('active');
 
+        allFaqs.forEach(faq => {
+            faq.classList.remove('active');
+        });
+
+        if (!isActive) {
+            element.classList.add('active');
+        }
+    }
     const modal = document.getElementById('donateModal');
     function openDonateModal() { modal.classList.add('show'); }
     function closeDonateModal() { modal.classList.remove('show'); }
