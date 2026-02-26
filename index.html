@@ -1,50 +1,79 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <style>
-        /* חסימה מיידית של תוכן האתר */
-        body { display: none !important; }
+ <!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <style id="lock-style">
+        body { display: none !important; margin: 0; padding: 0; }
+        #lock-screen {
+            direction: rtl;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999999; font-family: 'Assistant', sans-serif;
+        }
+        .login-card {
+            background: white; padding: 40px; border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            width: 90%; max-width: 380px; text-align: center; box-sizing: border-box;
+        }
+        .lock-icon { font-size: 50px; margin-bottom: 20px; display: block; }
+        .login-card h2 { margin: 0 0 10px 0; color: #1e293b; font-size: 24px; font-weight: 800; }
+        .login-card p { color: #64748b; font-size: 15px; margin-bottom: 30px; }
+        .login-card input {
+            width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px;
+            font-size: 18px; text-align: center; box-sizing: border-box;
+            transition: all 0.3s ease; outline: none; margin-bottom: 20px;
+        }
+        .login-card input:focus { border-color: #c5a059; box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.1); }
+        .login-card button {
+            width: 100%; padding: 14px; background: #c5a059; color: white; border: none;
+            border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+        }
+        #err-msg { color: #ef4444; font-size: 14px; margin-top: 15px; display: none; font-weight: bold; }
     </style>
 
     <script>
     (function() {
-        const MY_PASSWORD = "1234"; // <--- כאן אתה קובע את הסיסמה
-
-        function initLock() {
-            if (sessionStorage.getItem('site_access_granted') === 'true') {
+        const MY_PASS = "1234"; 
+        function init() {
+            if (sessionStorage.getItem('site_access') === 'true') {
                 const s = document.createElement('style');
                 s.innerHTML = 'body { display: block !important; }';
                 document.head.appendChild(s);
                 return;
             }
-
             window.addEventListener('DOMContentLoaded', () => {
-                document.documentElement.innerHTML = `
-                <dir dir="rtl" style="margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; background:#2c3e50; font-family:sans-serif;">
-                    <div style="background:white; padding:40px; border-radius:15px; box-shadow:0 10px 25px rgba(0,0,0,0.3); text-align:center; width:320px;">
-                        <div style="font-size:50px; margin-bottom:20px;">🔒</div>
-                        <h2 style="color:#333; margin-bottom:10px;">דף מוגן</h2>
-                        <p style="color:#666; margin-bottom:20px; font-size:14px;">הגישה לאתר זה דורשת סיסמה</p>
-                        <input type="password" id="p_input" placeholder="הקלד סיסמה..." style="width:100%; padding:12px; margin-bottom:15px; border:2px solid #ddd; border-radius:8px; font-size:18px; text-align:center; outline:none;">
-                        <button onclick="validate()" style="width:100%; padding:12px; background:#27ae60; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px;">כניסה לאתר</button>
-                        <p id="err_msg" style="color:#e74c3c; font-size:13px; margin-top:15px; display:none; font-weight:bold;">⚠️ סיסמה שגויה!</p>
-                    </div>
-                </dir>`;
+                document.body.innerHTML = `
+                    <div id="lock-screen">
+                        <div class="login-card">
+                            <span class="lock-icon">🔒</span>
+                            <h2>דף מוגן</h2>
+                            <p>הכניסה למורשים בלבד. אנא הזן סיסמה:</p>
+                            <input type="password" id="p_field" placeholder="••••••••" onkeypress="if(event.key==='Enter')validate()">
+                            <button onclick="validate()">כניסה לאתר</button>
+                            <p id="err-msg">⚠️ סיסמה שגויה, נסה שנית</p>
+                        </div>
+                    </div>`;
+                document.body.style.display = 'block';
             });
         }
-
         window.validate = function() {
-            const val = document.getElementById('p_input').value;
-            if (val === MY_PASSWORD) {
-                sessionStorage.setItem('site_access_granted', 'true');
+            if (document.getElementById('p_field').value === MY_PASS) {
+                sessionStorage.setItem('site_access', 'true');
                 location.reload();
             } else {
-                document.getElementById('err_msg').style.display = 'block';
+                document.getElementById('err-msg').style.display = 'block';
+                document.getElementById('p_field').style.borderColor = '#ef4444';
             }
         };
-        initLock();
+        init();
     })();
     </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>עטרת שלמה | מעטפת כלכלית והטבות לבני ישיבות ואברכים</title>
