@@ -41,16 +41,20 @@
         section.active { display: block; opacity: 1; transform: translateY(0); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* HERO – מרכוז Flexbox מושלם ללא padding קשיח */
+        /* HERO – הגדרות חדשות ליישור עליון */
+        section#home {
+            padding-top: 0;
+        }
+
         .hero {
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start; 
             align-items: center;
             min-height: calc(100vh - 70px);
             text-align: center;
             background: url('hero-bg.jpg') no-repeat center/cover;
-            padding: 20px 10%;
+            padding: 40px 10% 20px 10%;
         }
         .hero img { max-width: 200px; margin-bottom: 20px; }
         .hero h1 { font-family: 'Playfair Display', serif; font-size: 5rem; margin-bottom: 15px; color: var(--text-dark); }
@@ -144,6 +148,11 @@
             .hamburger { display: block; }
             .logo-img { height: 50px; }
             .btn-donate, .btn-secondary { width: 100%; justify-content: center; }
+            /* ביטול הצמדת שורת החיפוש בנייד */
+            .filter-header {
+            position: static !important; /* גורם לה להיעלם למעלה עם הגלילה */
+            box-shadow: none;
+        }
         }
         @media (max-width: 480px) {
             .hero h1 { font-size: 2.5rem; }
@@ -173,7 +182,7 @@
 
 <div class="bg-glow"></div>
 <nav role="navigation">
-    <img src="לוגו מתוקן שקוף.png" alt="לוגו עטרת שלמה" class="logo-img" onclick="showSection('home')">
+    <img src="logo.png" alt="לוגו עטרת שלמה" class="logo-img" onclick="showSection('home')">
     <div class="nav-links" id="navLinks">
         <span class="nav-link" onclick="showSection('home'); toggleMenu()">דף הבית</span>
         <span class="nav-link" onclick="showSection('arrangements'); toggleMenu()">רשימת הסדרים</span>
@@ -187,7 +196,7 @@
 <main id="main-content">
     <section id="home" class="active">
         <div class="hero">
-            <img src="לוגו מתוקן שקוף.png" alt="לוגו עטרת שלמה" style="max-width: 200px; display: block; margin: 0 auto 20px;">
+            <img src="logo.png" alt="לוגו עטרת שלמה" style="max-width: 200px; display: block; margin: 0 auto 20px;">
             <h1>עטרת שלמה</h1>
             <p>מעטפת של חסד, יוקרה ורווחה לבני הישיבות והאברכים</p>
             <div class="hero-buttons">
@@ -255,19 +264,19 @@
     <section id="faq">
         <div class="faq-container">
             <h2 style="text-align: center; color: var(--gold-dark); margin-bottom: 50px; font-size: 3rem;">שאלות ותשובות</h2>
-            <div class="faq-box" onclick="toggleFaq(this)">
+            <div class="faq-box" onclick="this.classList.toggle('active')">
                 <h3>אני בעל עסק ואני רוצה להיות שותף במהפכה?</h3>
                 <p>בוודאי! הזכות היא שלנו. בעלי עסקים המעוניינים להעניק תנאים מועדפים לבני הישיבה ולהצטרף למערך ההסדרים מוזמנים לפנות לראש הת"ת לתיאום.</p>
             </div>
-            <div class="faq-box" onclick="toggleFaq(this)">
+            <div class="faq-box" onclick="this.classList.toggle('active')">
                 <h3>איך ניתן לקבל שובר הנחה לחנויות?</h3>
                 <p>ניתן לקבל שוברים פיזיים במשרד הת"ת בישיבה בשעות הפעילות, או בתיאום טלפוני עם האחראים בהתאם למצוין בפרטי החנות.</p>
             </div>
-            <div class="faq-box" onclick="toggleFaq(this)">
+            <div class="faq-box" onclick="this.classList.toggle('active')">
                 <h3>מי זכאי לרכישה בחדר הביגוד של הת"ת?</h3>
                 <p>הרכישה מיועדת לבני הישיבה בלבד, בהצגת כרטיס או בתיאום עם האחראים, כדי להבטיח שהסבסוד העמוק יגיע ליעדו.</p>
             </div>
-            <div class="faq-box" onclick="toggleFaq(this)">
+            <div class="faq-box" onclick="this.classList.toggle('active')">
                 <h3>האם יש הטבות מיוחדות לחתנים מעבר לרשימה?</h3>
                 <p>כן, חתנים זכאים למעטפת מורחבת של קרן החתנים הכוללת ביגוד מלא לחיים שאחרי החתונה. מומלץ לפנות להנהלה מיד לאחר האירוסין.</p>
             </div>
@@ -289,7 +298,7 @@
     </section>
 </main>
 <footer role="contentinfo">
-    <img src="לוגו מתוקן שקוף.png" alt="לוגו עטרת שלמה" class="footer-logo">
+    <img src="logo.png" alt="לוגו עטרת שלמה" class="footer-logo">
     <p>מעל עשור של חסד ורווחה לעמלי התורה</p>
     <p>ת"ת עטרת שלמה (ע"ר) | מספר עמותה: 580792307 | מוסד ללא כוונת רווח (מלכ"ר)</p>
     <div class="footer-links">
@@ -317,10 +326,7 @@
     let shopsLoaded = false;
 
     async function fetchShops() {
-        if (shopsLoaded) {
-            renderArrangements(allShops);
-            return;
-        }
+        if (shopsLoaded) return;
         try {
             const response = await fetch(csvUrl);
             const csvText = await response.text();
@@ -355,7 +361,7 @@
         document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         window.scrollTo({top: 0, behavior: 'smooth'});
-        if (id === 'arrangements') fetchShops();
+        if (id === 'arrangements') fetchShops().then(() => filterItems());
     }
 
     function renderArrangements(shops) {
@@ -382,8 +388,6 @@
     function populateFilters(shops) {
         const catSelect = document.getElementById('catFilter');
         const citySelect = document.getElementById('cityFilter');
-        catSelect.innerHTML = '<option value="all">כל הקטגוריות</option>';
-        citySelect.innerHTML = '<option value="all">כל הערים</option>';
         const cats = new Set();
         const cities = new Set();
         shops.forEach(shop => {
@@ -445,20 +449,18 @@
             updateCount();
         });
     }
-
-    window.toggleFaq = function(element) {
+ function toggleFaq(element) {
         const allFaqs = document.querySelectorAll('.faq-box');
         const isActive = element.classList.contains('active');
 
-        // סגירת כל השאלות האחרות
-        allFaqs.forEach(faq => faq.classList.remove('active'));
+        allFaqs.forEach(faq => {
+            faq.classList.remove('active');
+        });
 
-        // פתיחה של הנוכחית רק אם היא לא הייתה פתוחה קודם
         if (!isActive) {
             element.classList.add('active');
         }
-    };
-
+    }
     const modal = document.getElementById('donateModal');
     function openDonateModal() { modal.classList.add('show'); }
     function closeDonateModal() { modal.classList.remove('show'); }
