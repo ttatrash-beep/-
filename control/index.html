@@ -1,1 +1,1004 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FleetPro – מרכז שליטה</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --sbw:255px;--hh:60px;
+      --bg:#F0F4F8;--sur:#FFF;--sur2:#F8FAFC;
+      --blue:#3B82F6;--bdk:#1E3A8A;--bmid:#2563EB;
+      --green:#10B981;--orange:#F59E0B;--red:#EF4444;
+      --t1:#0F172A;--t2:#64748B;--t3:#94A3B8;--bor:#E2E8F0;
+      --sh:0 1px 4px rgba(0,0,0,.07);--sh2:0 8px 24px rgba(0,0,0,.1);
+      --rad:14px;--font:'Rubik',sans-serif;
+    }
+    html,body{height:100%;overflow:hidden;font-family:var(--font);color:var(--t1);background:var(--bg)}
+    #login-overlay{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0b1120,#1e3a8a 60%,#0b1120);display:flex;align-items:center;justify-content:center}
+    .lc{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(24px);border-radius:22px;padding:40px;width:min(420px,94vw);display:flex;flex-direction:column;gap:16px}
+    .l-brand{display:flex;align-items:center;gap:12px}
+    .l-brand-ic{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#2563eb,#60a5fa);display:flex;align-items:center;justify-content:center;font-size:22px}
+    .l-brand-tx{font-size:26px;font-weight:800;color:#fff}
+    .l-sub{font-size:14px;color:rgba(255,255,255,.4)}
+    .l-lbl{font-size:13px;font-weight:500;color:rgba(255,255,255,.55);margin-bottom:4px;display:block}
+    .l-inp{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:11px;color:#fff;font-family:var(--font);font-size:15px;padding:12px 15px;outline:none;transition:border-color .2s}
+    .l-inp::placeholder{color:rgba(255,255,255,.28)}
+    .l-inp:focus{border-color:rgba(96,165,250,.7)}
+    .btn-em-login{background:var(--blue);color:#fff;border:none;border-radius:11px;padding:13px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;width:100%}
+    #l-err,#l-access-err{font-size:13px;text-align:center;display:none;padding:10px;border-radius:8px}
+    #l-err{color:#fca5a5;background:rgba(239,68,68,.1)}
+    #l-access-err{color:#fca5a5;background:rgba(239,68,68,.1)}
+    #shell{display:flex;flex-direction:column;height:100vh}
+    #topbar{height:var(--hh);background:var(--sur);border-bottom:1px solid var(--bor);display:flex;align-items:center;gap:10px;padding:0 16px;flex-shrink:0;box-shadow:var(--sh);z-index:50;position:relative}
+    #ham{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;display:flex;flex-direction:column;gap:5px}
+    #ham:hover{background:var(--bg)}
+    #ham span{display:block;width:18px;height:2px;background:var(--t2);border-radius:2px}
+    .tb-logo{display:flex;align-items:center;gap:8px}
+    .tb-logo-ic{width:30px;height:30px;background:linear-gradient(135deg,var(--bdk),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+    .tb-logo-tx{font-size:17px;font-weight:700;color:var(--bdk)}
+    #top-search-wrap{flex:1;max-width:300px;display:flex;align-items:center;gap:8px;background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:7px 12px;margin:0 10px}
+    #top-search-wrap input{border:none;background:none;font-family:var(--font);font-size:13px;color:var(--t1);outline:none;width:100%}
+    #top-search-wrap input::placeholder{color:var(--t3)}
+    #search-dropdown{position:absolute;top:58px;left:200px;width:280px;background:var(--sur);border:1px solid var(--bor);border-radius:12px;box-shadow:var(--sh2);z-index:200;max-height:220px;overflow-y:auto;display:none}
+    .sr-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--bor);font-size:13px;transition:background .12s}
+    .sr-item:last-child{border-bottom:none}
+    .sr-item:hover{background:var(--sur2)}
+    .tb-sp{flex:1}
+    .tb-stat{text-align:center;padding:0 8px}
+    .tb-val{font-size:20px;font-weight:800;line-height:1}
+    .tb-lbl{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.05em}
+    .tb-val.r{color:var(--red)}
+    .vd{width:1px;height:28px;background:var(--bor);margin:0 2px}
+    .live-pill{display:flex;align-items:center;gap:6px;background:rgba(16,185,129,.1);color:#059669;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px}
+    .lpd{width:7px;height:7px;border-radius:50%;background:#059669;animation:lp 1.5s infinite}
+    @keyframes lp{0%,100%{opacity:1}50%{opacity:.3}}
+    #clock{font-size:13px;font-weight:500;color:var(--t2);font-variant-numeric:tabular-nums}
+    .u-chip{display:flex;align-items:center;gap:7px;padding:4px 10px;background:var(--sur2);border:1px solid var(--bor);border-radius:20px}
+    .u-ava{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--bdk),var(--blue));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+    .u-nm{font-size:13px;font-weight:600;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .lo-btn{background:none;border:1px solid var(--bor);border-radius:8px;padding:5px 10px;font-family:var(--font);font-size:12px;color:var(--t2);cursor:pointer}
+    .lo-btn:hover{border-color:var(--red);color:var(--red)}
+    #body{display:flex;flex:1;min-height:0}
+    #sidebar{width:var(--sbw);background:#0F172A;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .28s ease}
+    #sidebar.col{width:56px}
+    .sb-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;overflow-x:hidden}
+    .sg{font-size:10px;font-weight:600;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.08em;padding:14px 12px 5px;white-space:nowrap;overflow:hidden}
+    #sidebar.col .sg{opacity:0}
+    .ni{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all .18s;color:rgba(255,255,255,.55);font-size:13px;font-weight:500;white-space:nowrap;position:relative;user-select:none}
+    .ni:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85)}
+    .ni.act{background:rgba(59,130,246,.18);color:#fff;font-weight:600}
+    .ni.act::before{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:3px;height:18px;background:var(--blue);border-radius:3px 0 0 3px}
+    .ni-ic{font-size:17px;flex-shrink:0;width:22px;text-align:center}
+    .ni-lb{flex:1;overflow:hidden;text-overflow:ellipsis}
+    #sidebar.col .ni-lb{display:none}
+    .nb{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0}
+    .nb.or{background:var(--orange)}
+    #sidebar.col .nb{display:none}
+    .sb-ft{padding:10px 8px;border-top:1px solid rgba(255,255,255,.06)}
+    .sb-u{display:flex;align-items:center;gap:9px;padding:10px 12px;background:rgba(255,255,255,.05);border-radius:10px;overflow:hidden}
+    .sb-av{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--bdk),var(--blue));display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+    .sb-nm{font-size:12px;font-weight:600;color:rgba(255,255,255,.8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .sb-rl{font-size:10px;color:rgba(255,255,255,.35)}
+    #sidebar.col .sb-nm,#sidebar.col .sb-rl{display:none}
+    #main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+    .page{display:none;flex:1;flex-direction:column;overflow-y:auto;min-height:0}
+    .page.active{display:flex}
+    #pg-map{overflow:hidden}
+    #map-wrap{flex:1;min-height:0;position:relative}
+    #gmap{width:100%;height:100%}
+    .map-ctrl{position:absolute;top:12px;right:12px;z-index:400;display:flex;flex-direction:column;gap:8px}
+    .mc-btn{background:#fff;border:1px solid var(--bor);color:var(--t1);border-radius:10px;padding:8px 14px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;box-shadow:var(--sh);transition:all .18s;white-space:nowrap}
+    .mc-btn:hover{border-color:var(--blue);color:var(--blue)}
+    .mc-btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+    #eta-panel{position:absolute;top:12px;left:12px;z-index:400;width:260px;display:flex;flex-direction:column;gap:8px;max-height:calc(100% - 80px);overflow-y:auto}
+    #eta-panel::-webkit-scrollbar{width:3px}
+    #eta-panel::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:2px}
+    .eta-card{background:#fff;border:1px solid var(--bor);border-radius:13px;padding:12px;box-shadow:var(--sh);cursor:pointer;transition:all .18s}
+    .eta-card:hover{border-color:var(--blue);box-shadow:var(--sh2)}
+    .eta-card.sel{border-color:var(--blue);box-shadow:0 0 0 2px rgba(59,130,246,.2)}
+    .eta-bus-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;gap:6px}
+    .eta-bus-nm{font-size:13px;font-weight:700}
+    .eta-bus-drv{font-size:11px;color:var(--t2);margin-top:1px}
+    .eta-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+    .eta-badge.live{background:rgba(16,185,129,.1);color:#059669}
+    .eta-badge.stale{background:rgba(245,158,11,.1);color:#d97706}
+    .eta-next{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:8px;padding:8px 10px;margin-bottom:6px}
+    .eta-next-lbl{font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.06em}
+    .eta-next-name{font-size:13px;font-weight:700;margin-top:2px}
+    .eta-next-time{font-size:12px;color:var(--blue);font-weight:600;margin-top:1px}
+    .eta-stops{display:flex;flex-direction:column;gap:1px}
+    .eta-sr{display:flex;align-items:center;gap:6px;padding:3px 4px;border-radius:6px}
+    .eta-dot{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+    .eta-dot.done{background:var(--green);color:#fff}
+    .eta-dot.cur{background:var(--blue);color:#fff}
+    .eta-dot.fut{background:var(--bor);color:var(--t2)}
+    .eta-sn{font-size:11px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .eta-sn.done{color:var(--t3);text-decoration:line-through}
+    .eta-t{font-size:10px;font-weight:700;white-space:nowrap}
+    .eta-t.live{color:var(--blue)}.eta-t.done{color:var(--green)}.eta-t.old{color:var(--t3)}
+    .eta-empty{background:#fff;border:1px solid var(--bor);border-radius:13px;padding:16px;text-align:center;font-size:13px;color:var(--t3)}
+    .eta-end-btn{display:block;width:100%;margin-top:8px;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:6px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer}
+    .eta-end-btn:hover{background:var(--red);color:#fff}
+    .sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 12px;flex-shrink:0}
+    .sec-ti{font-size:20px;font-weight:700}
+    .sec-su{font-size:13px;color:var(--t2);margin-top:2px}
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 24px 16px;flex-shrink:0}
+    .kpi{background:var(--sur);border-radius:var(--rad);padding:18px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--sh);position:relative;overflow:hidden;transition:transform .18s}
+    .kpi:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+    .kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+    .kpi.kb::after{background:var(--blue)}.kpi.kg::after{background:var(--green)}.kpi.ko::after{background:var(--orange)}.kpi.kr::after{background:var(--red)}
+    .kpi-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .kpi-ic.b{background:rgba(59,130,246,.1)}.kpi-ic.g{background:rgba(16,185,129,.1)}.kpi-ic.o{background:rgba(245,158,11,.1)}.kpi-ic.r{background:rgba(239,68,68,.1)}
+    .kpi-vl{font-size:28px;font-weight:800;line-height:1}
+    .kpi-lb{font-size:12px;color:var(--t2);margin-top:3px}
+    .rt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:0 24px 24px}
+    .rc{background:var(--sur);border:1px solid var(--bor);border-radius:var(--rad);padding:18px;transition:all .18s;position:relative;cursor:default}
+    .rc:hover{box-shadow:var(--sh2)}
+    .rc-status-dot{position:absolute;top:16px;left:16px;width:10px;height:10px;border-radius:50%;background:var(--t3)}
+    .rc-status-dot.active{background:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:lp 1.5s infinite}
+    .rc-nm{font-size:15px;font-weight:700;margin-bottom:4px;padding-left:18px}
+    .rc-meta{font-size:12px;color:var(--t2);margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap}
+    .rc-drv-info{font-size:12px;color:var(--t2);margin-bottom:8px;font-weight:500}
+    .rc-stops-mini{display:flex;flex-direction:column;gap:3px;max-height:60px;overflow-y:auto;margin-bottom:10px}
+    .rc-stop-item{font-size:11px;color:var(--t2);display:flex;align-items:center;gap:5px}
+    .rc-stop-num{width:14px;height:14px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0}
+    .rc-ac{display:flex;gap:6px;flex-wrap:wrap}
+    .al-wrap{display:flex;flex-direction:column;gap:10px;padding:0 24px 24px}
+    .al-card{background:var(--sur);border:1px solid rgba(239,68,68,.2);border-radius:var(--rad);padding:14px 16px;display:flex;gap:12px}
+    .al-card.warn{border-color:rgba(245,158,11,.25)}
+    .al-card.ok{border-color:rgba(16,185,129,.25)}
+    .al-ic{font-size:20px;flex-shrink:0}
+    .al-mg{font-size:14px;font-weight:600}
+    .al-sb{font-size:12px;color:var(--t2);margin-top:3px}
+    .tbl-wrap{padding:0 24px 24px;overflow-x:auto}
+    table{width:100%;border-collapse:collapse;background:var(--sur);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh)}
+    thead th{background:var(--sur2);font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;padding:11px 13px;text-align:right;border-bottom:1px solid var(--bor)}
+    tbody td{padding:11px 13px;border-bottom:1px solid var(--bor);font-size:13px;vertical-align:middle}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr:hover td{background:var(--sur2)}
+    .r-sel{background:var(--sur2);border:1px solid var(--bor);border-radius:8px;color:var(--t1);font-family:var(--font);font-size:12px;padding:4px 8px;outline:none;cursor:pointer}
+    .btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .18s}
+    .btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
+    .bp{background:var(--blue);color:#fff;box-shadow:0 3px 10px rgba(59,130,246,.25)}
+    .bs{background:var(--sur2);color:var(--t1);border:1px solid var(--bor)}
+    .br{background:var(--red);color:#fff}
+    .bsm{padding:5px 11px;font-size:12px}
+    .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+    .badge.live{background:rgba(16,185,129,.12);color:#059669}
+    .badge.stale{background:rgba(245,158,11,.12);color:#d97706}
+    .badge.off{background:rgba(148,163,184,.1);color:var(--t2)}
+    .mo{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center}
+    .mo.open{display:flex}
+    .mb{background:var(--sur);border-radius:20px;padding:28px;width:min(620px,96vw);max-height:92vh;overflow-y:auto;box-shadow:var(--sh2)}
+    .mb-wide{width:min(800px,96vw)}
+    .m-ti{font-size:20px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+    .ig{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+    .ig label{font-size:13px;font-weight:500;color:var(--t2)}
+    .ig input,.ig select{background:var(--sur2);border:1px solid var(--bor);border-radius:10px;color:var(--t1);font-family:var(--font);font-size:14px;padding:10px 12px;outline:none;transition:border-color .2s;width:100%}
+    .ig input:focus,.ig select:focus{border-color:var(--blue)}
+    .m-ft{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+    .m-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .st-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;margin-bottom:8px}
+    .st-row{display:flex;align-items:center;gap:7px;background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:8px 10px}
+    .st-n{width:21px;height:21px;border-radius:6px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+    .st-nm{font-size:13px;font-weight:600}
+    .st-ad{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .st-dl{width:26px;height:26px;border:none;background:rgba(239,68,68,.1);color:var(--red);border-radius:6px;cursor:pointer;font-size:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+    .st-dl:hover{background:var(--red);color:#fff}
+    .ac-box{background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+    .ac-box label{display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px}
+    #places-input{background:none;border:none;outline:none;font-family:var(--font);font-size:14px;color:var(--t1);width:100%}
+    #places-input::placeholder{color:var(--t3)}
+    .stop-code-box{background:var(--sur2);border:1px solid var(--bor);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+    .stop-code-box label{display:block;font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px}
+    .stop-row-inp{display:flex;gap:7px;align-items:center}
+    .stop-row-inp input{flex:1;background:var(--sur);border:1px solid var(--bor);border-radius:8px;padding:8px 10px;font-family:var(--font);font-size:13px;color:var(--t1);outline:none}
+    .stop-row-inp input:focus{border-color:var(--blue)}
+    .stop-found-msg{margin-top:6px;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;display:none}
+    .stop-found-msg.ok{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);color:#059669}
+    .stop-found-msg.err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+    /* Stops page */
+    .stops-page-wrap{padding:0 24px 24px;max-width:720px}
+    .stops-section{background:var(--sur);border:1px solid var(--bor);border-radius:var(--rad);padding:18px;margin-bottom:16px;box-shadow:var(--sh)}
+    .stops-section h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--t1)}
+    /* Modal map */
+    #mo-route-map .mb,#mo-bus-location .mb{padding:0;overflow:hidden}
+    .modal-map-hdr{padding:14px 18px;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between}
+    #route-map-container,#bus-loc-map{height:480px;width:100%}
+    #bus-loc-etas{padding:14px 18px;max-height:180px;overflow-y:auto}
+    .empty-st{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:36px;color:var(--t3);text-align:center}
+    .empty-st .ei{font-size:34px}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-thumb{background:var(--bor);border-radius:2px}
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
 
+<!-- LOGIN -->
+<div id="login-overlay">
+  <div class="lc">
+    <div class="l-brand"><div class="l-brand-ic">🚌</div><div class="l-brand-tx">FleetPro</div></div>
+    <div class="l-sub">מרכז שליטה – סדרנים בלבד</div>
+    <div><label class="l-lbl">אימייל</label><input class="l-inp" type="email" id="l-em" placeholder="dispatcher@company.com"/></div>
+    <div><label class="l-lbl">סיסמה</label><input class="l-inp" type="password" id="l-pw" placeholder="••••••••"/></div>
+    <button class="btn-em-login" id="btn-em">כניסה</button>
+    <div id="l-err"></div>
+    <div id="l-access-err">⛔ אין לך הרשאת סדרן. פנה למנהל המערכת.</div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div id="shell">
+  <div id="topbar">
+    <button id="ham" onclick="toggleSB()"><span></span><span></span><span></span></button>
+    <div class="tb-logo"><div class="tb-logo-ic">🚌</div><div class="tb-logo-tx">FleetPro</div></div>
+    <div id="top-search-wrap">
+      <span style="color:var(--t3);font-size:14px">🔍</span>
+      <input id="g-search" placeholder="חיפוש קו, נהג..." autocomplete="off"/>
+    </div>
+    <div id="search-dropdown"></div>
+    <div class="tb-sp"></div>
+    <div class="tb-stat"><div class="tb-val" id="st-a">0</div><div class="tb-lbl">אוטובוסים</div></div>
+    <div class="vd"></div>
+    <div class="tb-stat"><div class="tb-val r" id="st-al">0</div><div class="tb-lbl">התראות</div></div>
+    <div class="vd"></div>
+    <div class="tb-stat"><div class="tb-val" id="st-r">0</div><div class="tb-lbl">קווים</div></div>
+    <div class="live-pill"><div class="lpd"></div>שידור חי</div>
+    <div id="clock">--:--</div>
+    <div class="u-chip"><div class="u-ava" id="t-ava">?</div><div class="u-nm" id="t-nm">...</div></div>
+    <button class="lo-btn" onclick="doLogout()">יציאה</button>
+  </div>
+
+  <div id="body">
+    <nav id="sidebar">
+      <div class="sb-nav">
+        <div class="sg">ניווט</div>
+        <div class="ni act" onclick="showPage('pg-map',this)"><span class="ni-ic">🗺️</span><span class="ni-lb">מפה חיה</span></div>
+        <div class="ni" onclick="showPage('pg-routes',this)"><span class="ni-ic">🛣️</span><span class="ni-lb">קווים פעילים</span><span class="nb or" id="nb-b">0</span></div>
+        <div class="ni" onclick="showPage('pg-alerts',this)"><span class="ni-ic">⚠️</span><span class="ni-lb">התראות</span><span class="nb" id="nb-a" style="display:none">!</span></div>
+        <div class="sg">ניהול</div>
+        <div class="ni" onclick="showPage('pg-manage-routes',this)"><span class="ni-ic">🔧</span><span class="ni-lb">ניהול קווים</span></div>
+        <div class="ni" onclick="showPage('pg-stops',this)"><span class="ni-ic">🚏</span><span class="ni-lb">ניהול תחנות</span></div>
+        <div class="ni" onclick="showPage('pg-users',this)"><span class="ni-ic">👥</span><span class="ni-lb">ניהול משתמשים</span></div>
+        <div class="ni" onclick="showPage('pg-reports',this)"><span class="ni-ic">📊</span><span class="ni-lb">דוחות</span></div>
+      </div>
+      <div class="sb-ft"><div class="sb-u"><div class="sb-av" id="sb-av">?</div><div><div class="sb-nm" id="sb-nm">...</div><div class="sb-rl">סדרן</div></div></div></div>
+    </nav>
+
+    <div id="main">
+
+      <!-- MAP -->
+      <div class="page active" id="pg-map">
+        <div id="map-wrap">
+          <div id="gmap"></div>
+          <div class="map-ctrl">
+            <button class="mc-btn" onclick="fitAll()">🚌 כל האוטובוסים</button>
+            <button class="mc-btn" id="btn-rt" onclick="toggleRoutes()">🛣️ הצג מסלולים</button>
+          </div>
+          <div id="eta-panel"><div class="eta-empty">⏳ ממתין לנתונים...</div></div>
+        </div>
+      </div>
+
+      <!-- ACTIVE ROUTES -->
+      <div class="page" id="pg-routes">
+        <div class="sec-hdr">
+          <div><div class="sec-ti">🛣️ קווים פעילים</div><div class="sec-su">לחץ על קו לצפייה במסלול או במיקום</div></div>
+          <input id="route-search-inp" placeholder="🔍 חפש קו או נהג..." style="background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--t1);outline:none;width:230px"/>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi kb"><div class="kpi-ic b">🚌</div><div><div class="kpi-vl" id="kp-a">0</div><div class="kpi-lb">פעילים</div></div></div>
+          <div class="kpi kg"><div class="kpi-ic g">🛣️</div><div><div class="kpi-vl" id="kp-r">0</div><div class="kpi-lb">קווים</div></div></div>
+          <div class="kpi ko"><div class="kpi-ic o">⏱</div><div><div class="kpi-vl" id="kp-s">0</div><div class="kpi-lb">מאחרים</div></div></div>
+          <div class="kpi kr"><div class="kpi-ic r">⚠️</div><div><div class="kpi-vl" id="kp-d">0</div><div class="kpi-lb">כפילויות</div></div></div>
+        </div>
+        <div class="rt-grid" id="active-routes-grid"><div class="empty-st" style="grid-column:1/-1"><div class="ei">🚌</div><p>ממתין לנתונים...</p></div></div>
+      </div>
+
+      <!-- ALERTS -->
+      <div class="page" id="pg-alerts">
+        <div class="sec-hdr"><div><div class="sec-ti">⚠️ התראות</div><div class="sec-su">עדכון אוטומטי</div></div></div>
+        <div class="al-wrap" id="al-wrap"></div>
+      </div>
+
+      <!-- MANAGE ROUTES -->
+      <div class="page" id="pg-manage-routes">
+        <div class="sec-hdr">
+          <div><div class="sec-ti">🔧 ניהול קווים</div><div class="sec-su">הגדרת מסלולים ותחנות</div></div>
+          <button class="btn bp bsm" onclick="openRM(null)">+ קו חדש</button>
+        </div>
+        <div class="rt-grid" id="rt-grid"></div>
+      </div>
+
+      <!-- STOPS MANAGEMENT -->
+      <div class="page" id="pg-stops">
+        <div class="sec-hdr"><div><div class="sec-ti">🚏 ניהול תחנות</div><div class="sec-su">חיפוש לפי מספר תחנה או כתובת</div></div></div>
+        <div class="stops-page-wrap">
+          <div class="stops-section">
+            <h3>🔢 חיפוש לפי מספר תחנה (האוטובוס הפתוח)</h3>
+            <div class="stop-row-inp">
+              <input type="number" id="stop-code-inp" placeholder="מספר תחנה, לדוגמה: 37350"/>
+              <button class="btn bp bsm" onclick="searchByCode()">חפש ושמור</button>
+            </div>
+            <div class="stop-found-msg" id="stop-code-result"></div>
+          </div>
+          <div class="stops-section">
+            <h3>📍 חיפוש לפי כתובת (Google Maps)</h3>
+            <div class="stop-row-inp">
+              <input id="stop-address-inp" placeholder="הקלד כתובת..."/>
+              <button class="btn bp bsm" onclick="addStopFromAddress()">הוסף תחנה</button>
+            </div>
+            <div class="stop-found-msg" id="stop-addr-result"></div>
+          </div>
+          <div class="stops-section">
+            <h3>📋 תחנות שמורות ב-Firestore</h3>
+            <div id="saved-stops-list"><div class="empty-st"><div class="ei">🚏</div><p>אין תחנות שמורות</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div class="page" id="pg-users">
+        <div class="sec-hdr">
+          <div><div class="sec-ti">👥 ניהול משתמשים</div><div class="sec-su">נהגים, סדרנים ומפעילים</div></div>
+          <button class="btn bp bsm" onclick="openUM()">+ הוסף משתמש</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>שם נהג</th><th>שם מפעיל</th><th>אימייל</th><th>תפקיד</th><th>סיסמה</th><th>נראה לאחרונה</th><th>פעולות</th></tr></thead>
+            <tbody id="u-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="page" id="pg-reports">
+        <div class="sec-hdr"><div><div class="sec-ti">📊 דוחות</div></div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding:0 24px 24px">
+          <div class="rc" onclick="dlReport('daily')" style="cursor:pointer"><div style="font-size:28px;margin-bottom:8px">📥</div><div style="font-size:15px;font-weight:700;margin-bottom:4px">דוח יומי</div><button class="btn bp bsm" style="margin-top:6px">הורד CSV</button></div>
+          <div class="rc" onclick="dlReport('routes')" style="cursor:pointer"><div style="font-size:28px;margin-bottom:8px">🛣️</div><div style="font-size:15px;font-weight:700;margin-bottom:4px">דוח קווים</div><button class="btn bp bsm" style="margin-top:6px">הורד CSV</button></div>
+          <div class="rc" onclick="dlReport('drivers')" style="cursor:pointer"><div style="font-size:28px;margin-bottom:8px">👨‍✈️</div><div style="font-size:15px;font-weight:700;margin-bottom:4px">דוח נהגים</div><button class="btn bp bsm" style="margin-top:6px">הורד CSV</button></div>
+          <div class="rc" onclick="dlReport('eta')" style="cursor:pointer"><div style="font-size:28px;margin-bottom:8px">⏱</div><div style="font-size:15px;font-weight:700;margin-bottom:4px">דוח ETA</div><button class="btn bp bsm" style="margin-top:6px">הורד CSV</button></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ROUTE EDIT -->
+<div class="mo" id="mo-r">
+  <div class="mb" onclick="event.stopPropagation()">
+    <div class="m-ti">🛣️ <span id="mo-r-ti">הוסף קו חדש</span></div>
+    <div class="ig"><label>שם הקו</label><input type="text" id="r-name" placeholder="קו 101 – אריאל מרכז"/></div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:8px">תחנות הקו</div>
+      <div class="st-list" id="st-list"></div>
+      <div class="stop-code-box">
+        <label>🔢 הוסף לפי מספר תחנה</label>
+        <div class="stop-row-inp">
+          <input type="number" id="rm-stop-code" placeholder="מספר תחנה..."/>
+          <button class="btn bp bsm" onclick="addStopByCode()">הוסף</button>
+        </div>
+        <div class="stop-found-msg" id="rm-stop-result"></div>
+      </div>
+      <div class="ac-box" style="margin-bottom:8px">
+        <label>📍 הוסף לפי כתובת</label>
+        <input id="places-input" type="text" placeholder="הקלד כתובת, שם מקום..."/>
+      </div>
+      <details>
+        <summary style="font-size:12px;color:var(--t2);cursor:pointer;padding:7px;background:var(--sur2);border-radius:8px;border:1px solid var(--bor)">הוספה ידנית (קו/אורך)</summary>
+        <div style="margin-top:8px;padding:10px;background:var(--sur2);border:1px solid var(--bor);border-radius:10px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px">
+            <input type="text" id="m-sn" placeholder="שם תחנה" style="background:var(--sur);border:1px solid var(--bor);border-radius:7px;padding:7px;font-family:var(--font);font-size:13px;outline:none;color:var(--t1)"/>
+            <input type="number" id="m-la" placeholder="31.7..." step="0.0001" style="background:var(--sur);border:1px solid var(--bor);border-radius:7px;padding:7px;font-family:var(--font);font-size:13px;outline:none;color:var(--t1)"/>
+            <input type="number" id="m-ln" placeholder="35.2..." step="0.0001" style="background:var(--sur);border:1px solid var(--bor);border-radius:7px;padding:7px;font-family:var(--font);font-size:13px;outline:none;color:var(--t1)"/>
+          </div>
+          <button class="btn bs bsm" style="margin-top:7px" onclick="addManSt()">+ הוסף</button>
+        </div>
+      </details>
+    </div>
+    <div class="m-ft"><button class="btn bs" onclick="closeRM()">ביטול</button><button class="btn bp" onclick="saveRoute()">💾 שמור קו</button></div>
+  </div>
+</div>
+
+<!-- MODAL: USER -->
+<div class="mo" id="mo-u">
+  <div class="mb" onclick="event.stopPropagation()">
+    <div class="m-ti">👤 <span id="mo-u-ti">הוסף משתמש</span></div>
+    <div class="m-2col">
+      <div class="ig"><label>שם הנהג / עובד</label><input type="text" id="u-driver-name" placeholder="ישראל ישראלי"/></div>
+      <div class="ig"><label>שם מפעיל / חברה</label><input type="text" id="u-operator-name" placeholder="חברת אגד"/></div>
+    </div>
+    <div class="ig"><label>אימייל</label><input type="email" id="u-em" placeholder="user@company.com"/></div>
+    <div class="ig"><label>סיסמה (לפחות 6 תווים)</label><input type="password" id="u-pw" placeholder="••••••••"/></div>
+    <div class="ig"><label>תפקיד</label>
+      <select id="u-rl">
+        <option value="driver">🚌 נהג – גישה לאפליקציית נהג בלבד</option>
+        <option value="dispatcher">🎛 סדרן – גישה למרכז שליטה</option>
+      </select>
+    </div>
+    <div style="background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--t2)">
+      ℹ️ נהג מתחבר רק לאפליקציית הנהג; סדרן רק למרכז השליטה.
+    </div>
+    <div id="u-save-msg" style="display:none;padding:8px;border-radius:8px;font-size:13px;text-align:center;margin-top:8px"></div>
+    <div class="m-ft"><button class="btn bs" onclick="closeUM()">ביטול</button><button class="btn bp" id="btn-save-user" onclick="saveUser()">💾 שמור</button></div>
+  </div>
+</div>
+
+<!-- MODAL: ROUTE MAP -->
+<div class="mo" id="mo-route-map">
+  <div class="mb mb-wide" onclick="event.stopPropagation()">
+    <div class="modal-map-hdr">
+      <div><div style="font-size:18px;font-weight:700" id="rm-title">מסלול</div><div style="font-size:12px;color:var(--t2)" id="rm-subtitle"></div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn bp bsm" onclick="goToMainMap()">🗺️ מפה ראשית</button>
+        <button class="btn bs bsm" onclick="document.getElementById('mo-route-map').classList.remove('open')">✕</button>
+      </div>
+    </div>
+    <div id="route-map-container"></div>
+  </div>
+</div>
+
+<!-- MODAL: BUS LOCATION -->
+<div class="mo" id="mo-bus-location">
+  <div class="mb mb-wide" onclick="event.stopPropagation()">
+    <div class="modal-map-hdr">
+      <div><div style="font-size:18px;font-weight:700" id="bl-title">מיקום אוטובוס</div><div style="font-size:12px;color:var(--t2)" id="bl-subtitle"></div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn br bsm" onclick="endTripFromModal()">⏹ סיים נסיעה</button>
+        <button class="btn bs bsm" onclick="document.getElementById('mo-bus-location').classList.remove('open')">✕</button>
+      </div>
+    </div>
+    <div id="bus-loc-map"></div>
+    <div id="bus-loc-etas"></div>
+  </div>
+</div>
+
+<script>
+window._gmReady=false;window._gmQ=[];
+window._gmCB=function(){window._gmReady=true;window._gmQ.forEach(f=>f());window._gmQ=[];};
+window._onGm=function(f){if(window._gmReady)f();else window._gmQ.push(f);};
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl_gJpoNgi_utS4BY9jvUABvPRmjYxfaY&libraries=geometry,places&language=he&region=IL&callback=_gmCB" async defer></script>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getAuth,onAuthStateChanged,signOut,signInWithEmailAndPassword,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getFirestore,collection,doc,setDoc,addDoc,getDocs,onSnapshot,serverTimestamp,deleteDoc,updateDoc,getDoc,query,where}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const FB={apiKey:"AIzaSyCYebIWehiY8fqP54W8cuUoaoGYvqm7dtk",authDomain:"fleetpro-live-cfd2e.firebaseapp.com",projectId:"fleetpro-live-cfd2e",storageBucket:"fleetpro-live-cfd2e.firebasestorage.app",messagingSenderId:"720089208081",appId:"1:720089208081:web:642c3df765f403d89968b0"};
+const app=initializeApp(FB),auth=getAuth(app),db=getFirestore(app);
+
+let gMap=null,rCache={},stBuf=[],editRId=null;
+let allBusData=[],busGMarkers={},routePolylines=[],showRouteLines=false;
+let selBusId=null,openInfoWindow=null;
+let routeMapInst=null,busLocMapInst=null,currentEndBusId=null;
+let etaWriteTimer=null,_srMatches=[];
+
+setInterval(()=>{const el=document.getElementById('clock');if(el)el.textContent=new Date().toTimeString().slice(0,5);},1000);
+
+/* ── MAP ── */
+function initMap(){
+  if(gMap)return;
+  gMap=new google.maps.Map(document.getElementById('gmap'),{
+    center:{lat:31.7767,lng:35.2345},zoom:12,mapTypeControl:false,streetViewControl:false,fullscreenControl:false
+  });
+}
+window._onGm(initMap);
+
+function mkBusIcon(label,alert,sel){
+  const bg=alert?'#EF4444':sel?'#1e3a8a':'#2563EB';
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="38" viewBox="0 0 120 38"><rect x="2" y="2" width="116" height="34" rx="9" fill="${bg}" stroke="${sel?'white':'transparent'}" stroke-width="${sel?2:0}"/><text x="14" y="24" font-family="Rubik,Arial" font-size="16" fill="white">🚌</text><text x="36" y="24" font-family="Rubik,Arial" font-size="13" font-weight="700" fill="white">${label.substring(0,14)}</text></svg>`;
+  return{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg),scaledSize:new google.maps.Size(120,38),anchor:new google.maps.Point(0,38)};
+}
+
+/* ── HELPERS ── */
+function G(id){return document.getElementById(id);}
+function fmtTime(iso){if(!iso)return'—';try{return new Date(iso).toTimeString().slice(0,5);}catch{return'—';}}
+function fmtMin(iso){if(!iso)return'—';const m=Math.round((new Date(iso)-Date.now())/60000);if(m<0)return'עבר';if(m===0)return'עכשיו';return m+'ד\'';}
+function haversine(la1,ln1,la2,ln2){const R=6371000,dL=(la2-la1)*Math.PI/180,dN=(ln2-ln1)*Math.PI/180,a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+function timeSince(d){const s=Math.floor((Date.now()-d.getTime())/1000);if(s<60)return`${s}ש`;if(s<3600)return`${Math.floor(s/60)}ד`;return`${Math.floor(s/3600)}ש'`;}
+function getStopETAs(b){
+  const route=rCache[b.routeId];if(!route||!b.lat||!b.lng)return[];
+  const idx=b.currentStopIndex||0;
+  if(b.stopETAs&&Object.keys(b.stopETAs).length>0)
+    return(route.stations||[]).map((s,i)=>({...s,etaIso:b.stopETAs[`stop_${i}_eta`]||null,passed:i<idx}));
+  const spd=(b.speed||0)>1?b.speed:8;const now=Date.now();let acc=0;
+  return(route.stations||[]).map((s,i)=>{
+    if(i<idx)return{...s,etaIso:null,passed:true};
+    const dist=i===idx?haversine(b.lat,b.lng,s.lat,s.lng):haversine(route.stations[i-1].lat,route.stations[i-1].lng,s.lat,s.lng);
+    acc+=dist/spd*1000;return{...s,etaIso:new Date(now+acc).toISOString(),passed:false};
+  });
+}
+
+/* ── OPEN BUS API ── */
+async function fetchStopFromAPI(code){
+  const PROXY='https://corsproxy.io/?url=';
+  const url=`https://open-bus-stride-api.cloud.railway.app/gtfs_stops/list?code=${code}`;
+  try{
+    const r=await fetch(PROXY+encodeURIComponent(url));
+    const d=await r.json();
+    if(!d||!d.length)return null;
+    const s=d[0];
+    return{stopId:String(code),name:s.name||s.stop_name||`תחנה ${code}`,lat:parseFloat(s.lat||s.stop_lat||0),lng:parseFloat(s.lon||s.stop_lon||s.lng||0)};
+  }catch{
+    try{const r=await fetch(url);const d=await r.json();if(!d||!d.length)return null;const s=d[0];return{stopId:String(code),name:s.name||s.stop_name||`תחנה ${code}`,lat:parseFloat(s.lat||s.stop_lat||0),lng:parseFloat(s.lon||s.stop_lon||s.lng||0)};}
+    catch{return null;}
+  }
+}
+async function resolveStop(code){
+  const snap=await getDocs(query(collection(db,'bus_stops'),where('stopId','==',String(code))));
+  if(!snap.empty)return{...snap.docs[0].data(),_fromCache:true};
+  const stop=await fetchStopFromAPI(code);
+  if(!stop)return null;
+  await setDoc(doc(db,'bus_stops',String(code)),{...stop,createdAt:serverTimestamp()});
+  return stop;
+}
+
+window.searchByCode=async function(){
+  const code=G('stop-code-inp').value.trim();
+  const res=G('stop-code-result');
+  if(!code)return;
+  res.className='stop-found-msg';res.style.display='block';res.textContent='🔍 מחפש...';
+  const stop=await resolveStop(code);
+  if(!stop){res.className='stop-found-msg err';res.style.display='block';res.textContent='❌ תחנה לא נמצאה';return;}
+  res.className='stop-found-msg ok';res.style.display='block';
+  res.textContent=`✅ ${stop.name} (${stop.lat?.toFixed(5)}, ${stop.lng?.toFixed(5)}) ${stop._fromCache?'– מהמטמון':'– נשמר'}`;
+  loadSavedStops();
+};
+
+window.addStopFromAddress=function(){
+  const inp=G('stop-address-inp'),res=G('stop-addr-result');
+  window._onGm(()=>{
+    const ac=new google.maps.places.Autocomplete(inp,{componentRestrictions:{country:'il'}});
+    ac.addListener('place_changed',async()=>{
+      const p=ac.getPlace();if(!p.geometry){res.className='stop-found-msg err';res.style.display='block';res.textContent='❌ לא נמצא';return;}
+      const stop={stopId:'addr_'+Date.now(),name:p.name||p.formatted_address,lat:p.geometry.location.lat(),lng:p.geometry.location.lng(),address:p.formatted_address||''};
+      await setDoc(doc(db,'bus_stops',stop.stopId),{...stop,createdAt:serverTimestamp()});
+      res.className='stop-found-msg ok';res.style.display='block';res.textContent=`✅ ${stop.name} נשמר`;
+      loadSavedStops();inp.value='';
+    });
+  });
+};
+
+async function loadSavedStops(){
+  const snap=await getDocs(collection(db,'bus_stops'));
+  const el=G('saved-stops-list');if(!el)return;
+  if(!snap.size){el.innerHTML='<div class="empty-st"><div class="ei">🚏</div><p>אין תחנות שמורות</p></div>';return;}
+  const stops=[];snap.forEach(d=>stops.push({id:d.id,...d.data()}));
+  el.innerHTML=`<table style="width:100%;border-collapse:collapse;background:var(--sur);border-radius:12px;overflow:hidden;box-shadow:var(--sh)">
+    <thead><tr><th style="padding:9px 12px;background:var(--sur2);font-size:11px;color:var(--t2);text-align:right;border-bottom:1px solid var(--bor)">שם</th><th style="padding:9px 12px;background:var(--sur2);font-size:11px;color:var(--t2);text-align:right;border-bottom:1px solid var(--bor)">מספר</th><th style="padding:9px 12px;background:var(--sur2);font-size:11px;color:var(--t2);text-align:right;border-bottom:1px solid var(--bor)">קואורד'</th><th style="padding:9px 12px;background:var(--sur2);font-size:11px;color:var(--t2);border-bottom:1px solid var(--bor)"></th></tr></thead>
+    <tbody>${stops.map(s=>`<tr><td style="padding:9px 12px;border-bottom:1px solid var(--bor);font-size:13px;font-weight:600">${s.name||'—'}</td><td style="padding:9px 12px;border-bottom:1px solid var(--bor);font-size:12px;color:var(--t2)">${s.stopId||'—'}</td><td style="padding:9px 12px;border-bottom:1px solid var(--bor);font-size:11px;color:var(--t2)">${s.lat?.toFixed(5)||'—'}, ${s.lng?.toFixed(5)||'—'}</td><td style="padding:9px 12px;border-bottom:1px solid var(--bor)"><button class="btn br bsm" onclick="delStop('${s.id}')">🗑</button></td></tr>`).join('')}</tbody>
+  </table>`;
+}
+window.delStop=async function(id){if(!confirm('למחוק?'))return;await deleteDoc(doc(db,'bus_stops',id));loadSavedStops();};
+
+/* ── ADD STOP BY CODE IN ROUTE MODAL ── */
+window.addStopByCode=async function(){
+  const code=G('rm-stop-code').value.trim(),res=G('rm-stop-result');
+  if(!code)return;
+  res.className='stop-found-msg';res.style.display='block';res.textContent='🔍 מחפש...';
+  const stop=await resolveStop(code);
+  if(!stop){res.className='stop-found-msg err';res.style.display='block';res.textContent='❌ לא נמצא';return;}
+  stBuf.push({id:'s'+Date.now(),stopId:stop.stopId,name:stop.name,lat:stop.lat,lng:stop.lng,address:''});
+  renderSL();res.className='stop-found-msg ok';res.style.display='block';res.textContent=`✅ ${stop.name}`;
+  G('rm-stop-code').value='';setTimeout(()=>res.style.display='none',2500);
+};
+
+/* ── DIRECTIONS API – draw on roads ── */
+function drawRoadRoute(stations,mapInst,rend){
+  if(!stations||stations.length<2)return;
+  const svc=new google.maps.DirectionsService();
+  const origin={lat:stations[0].lat,lng:stations[0].lng};
+  const dest={lat:stations[stations.length-1].lat,lng:stations[stations.length-1].lng};
+  const wps=stations.slice(1,-1).slice(0,8).map(s=>({location:{lat:s.lat,lng:s.lng},stopover:true}));
+  svc.route({origin,destination:dest,waypoints:wps,travelMode:google.maps.TravelMode.DRIVING,region:'IL'},(res,st)=>{
+    if(st==='OK'){
+      rend.setDirections(res);
+      stations.forEach((s,i)=>new google.maps.Marker({position:{lat:s.lat,lng:s.lng},map:mapInst,zIndex:i===0||i===stations.length-1?10:1,
+        icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:i===0?'#10B981':i===stations.length-1?'#EF4444':'#3B82F6',fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:i===0||i===stations.length-1?11:8},title:`${i+1}. ${s.name}`}));
+    }
+  });
+}
+
+window.toggleRoutes=function(){
+  showRouteLines=!showRouteLines;
+  G('btn-rt').classList.toggle('on',showRouteLines);
+  routePolylines.forEach(p=>{if(p.setMap)p.setMap(null);});routePolylines=[];
+  if(!showRouteLines||!gMap)return;
+  Object.values(rCache).forEach(r=>{
+    if(!r.stations||r.stations.length<2)return;
+    const rend=new google.maps.DirectionsRenderer({suppressMarkers:true,polylineOptions:{strokeColor:'#3B82F6',strokeWeight:4,strokeOpacity:.8}});
+    rend.setMap(gMap);routePolylines.push(rend);
+    drawRoadRoute(r.stations,gMap,rend);
+    r.stations.forEach((s,i)=>{const m=new google.maps.Marker({position:{lat:s.lat,lng:s.lng},map:gMap,zIndex:1,icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:'#3B82F6',fillOpacity:.9,strokeColor:'#fff',strokeWeight:2,scale:7},title:`${i+1}. ${s.name}`});routePolylines.push(m);});
+  });
+};
+
+/* ── ROUTE MAP MODAL ── */
+let selRouteForMap=null;
+window.openRouteOnMap=function(rid){
+  const route=rCache[rid];if(!route)return;
+  selRouteForMap=route;
+  G('rm-title').textContent=`🛣️ ${route.name}`;
+  G('rm-subtitle').textContent=`${route.stations?.length||0} תחנות`;
+  G('mo-route-map').classList.add('open');
+  setTimeout(()=>window._onGm(()=>{
+    const container=G('route-map-container');
+    if(!routeMapInst)routeMapInst=new google.maps.Map(container,{center:{lat:31.7767,lng:35.2345},zoom:12,mapTypeControl:false,streetViewControl:false,fullscreenControl:false});
+    else google.maps.event.trigger(routeMapInst,'resize');
+    if(route.stations?.length){
+      const rend=new google.maps.DirectionsRenderer({suppressMarkers:true,polylineOptions:{strokeColor:'#3B82F6',strokeWeight:5,strokeOpacity:.9}});
+      rend.setMap(routeMapInst);
+      drawRoadRoute(route.stations,routeMapInst,rend);
+      const bounds=new google.maps.LatLngBounds();route.stations.forEach(s=>bounds.extend({lat:s.lat,lng:s.lng}));
+      routeMapInst.fitBounds(bounds,{padding:40});
+    }
+  }),120);
+};
+window.goToMainMap=function(){
+  G('mo-route-map').classList.remove('open');
+  showPage('pg-map',document.querySelector('.ni'));
+  if(!showRouteLines)window.toggleRoutes();
+};
+
+/* ── BUS LOCATION MODAL ── */
+window.openBusOnMap=function(busId){
+  const bus=allBusData.find(b=>b.id===busId);if(!bus)return;
+  currentEndBusId=busId;
+  G('bl-title').textContent=`🚌 ${bus.routeName||bus.routeId}`;
+  G('bl-subtitle').textContent=`נהג: ${bus.driverName||'—'}`;
+  const etas=getStopETAs(bus);
+  G('bus-loc-etas').innerHTML=etas.length?`<div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:7px">זמני הגעה</div>`+
+    etas.map((s,i)=>{const dc=s.passed?'done':i===etas.findIndex(x=>!x.passed)?'cur':'fut';
+      return`<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--bor)">
+        <div class="eta-dot ${dc}" style="width:17px;height:17px;font-size:9px">${s.passed?'✓':i+1}</div>
+        <span style="flex:1;font-size:12px;${s.passed?'color:var(--t3);text-decoration:line-through':''}">${s.name}</span>
+        <span style="font-size:11px;font-weight:700;color:${s.passed?'var(--green)':'var(--blue)'}">${s.passed?'עבר':fmtTime(s.etaIso)}</span>
+        <span style="font-size:11px;color:var(--t2)">${s.passed?'':fmtMin(s.etaIso)}</span>
+      </div>`;}).join(''):'<div style="color:var(--t3);font-size:13px;text-align:center;padding:14px">אין נתוני ETA</div>';
+  G('mo-bus-location').classList.add('open');
+  setTimeout(()=>window._onGm(()=>{
+    const container=G('bus-loc-map');
+    if(!busLocMapInst)busLocMapInst=new google.maps.Map(container,{center:{lat:bus.lat,lng:bus.lng},zoom:15,mapTypeControl:false,streetViewControl:false,fullscreenControl:false});
+    else{google.maps.event.trigger(busLocMapInst,'resize');busLocMapInst.setCenter({lat:bus.lat,lng:bus.lng});busLocMapInst.setZoom(15);}
+    new google.maps.Marker({position:{lat:bus.lat,lng:bus.lng},map:busLocMapInst,zIndex:100,
+      icon:{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="#2563EB" stroke="white" stroke-width="3"/><text x="22" y="28" text-anchor="middle" font-size="20" fill="white">🚌</text></svg>`),scaledSize:new google.maps.Size(44,44),anchor:new google.maps.Point(22,22)}});
+    const route=rCache[bus.routeId];
+    if(route?.stations?.length){
+      const rend=new google.maps.DirectionsRenderer({suppressMarkers:true,polylineOptions:{strokeColor:'#3B82F6',strokeWeight:4,strokeOpacity:.85}});
+      rend.setMap(busLocMapInst);drawRoadRoute(route.stations,busLocMapInst,rend);
+    }
+  }),120);
+};
+window.endTripFromModal=async function(){
+  if(!currentEndBusId)return;
+  if(!confirm('לסיים את הנסיעה הזאת?'))return;
+  await updateDoc(doc(db,'bus_locations',currentEndBusId),{active:false,updatedAt:serverTimestamp()});
+  G('mo-bus-location').classList.remove('open');
+};
+window.endTripETA=async function(busId){
+  if(!confirm('לסיים את הנסיעה הזאת?'))return;
+  await updateDoc(doc(db,'bus_locations',busId),{active:false,updatedAt:serverTimestamp()});
+};
+
+/* ── AUTH ── */
+window.showPage=function(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  G(id)?.classList.add('active');
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('act'));
+  if(el)el.classList.add('act');
+  if(id==='pg-map'&&gMap)setTimeout(()=>google.maps.event.trigger(gMap,'resize'),60);
+  if(id==='pg-stops')loadSavedStops();
+};
+window.toggleSB=()=>G('sidebar').classList.toggle('col');
+window.doLogout=async()=>await signOut(auth);
+
+G('btn-em').onclick=async()=>{
+  const em=G('l-em').value.trim(),pw=G('l-pw').value;
+  const err=G('l-err'),aerr=G('l-access-err');
+  err.style.display='none';aerr.style.display='none';
+  try{
+    const cred=await signInWithEmailAndPassword(auth,em,pw);
+    const snap=await getDoc(doc(db,'users',cred.user.uid));
+    const role=snap.exists()?snap.data().role:'driver';
+    if(role!=='dispatcher'){await signOut(auth);aerr.style.display='block';}
+  }catch(e){err.style.display='block';err.textContent=e.code==='auth/invalid-credential'?'אימייל או סיסמה שגויים':e.message;}
+};
+
+onAuthStateChanged(auth,async(user)=>{
+  if(user){
+    const snap=await getDoc(doc(db,'users',user.uid));
+    const role=snap.exists()?snap.data().role:'driver';
+    if(role!=='dispatcher'){await signOut(auth);G('l-access-err').style.display='block';return;}
+    G('login-overlay').style.display='none';
+    const nm=snap.data()?.driverName||user.displayName||user.email||'סדרן';
+    G('t-nm').textContent=nm;G('sb-nm').textContent=nm;
+    G('t-ava').textContent=nm.slice(0,2).toUpperCase();G('sb-av').textContent=nm.slice(0,2).toUpperCase();
+    await setDoc(doc(db,'users',user.uid),{lastSeen:serverTimestamp()},{merge:true});
+    window._onGm(()=>{initMap();startRT();loadRoutes();loadUsers();});
+    if(window._gmReady){initMap();startRT();loadRoutes();loadUsers();}
+  } else {
+    G('login-overlay').style.display='flex';
+  }
+});
+
+/* ── REALTIME ── */
+function startRT(){
+  onSnapshot(collection(db,'bus_locations'),snap=>{
+    allBusData=[];const rIds=new Set(),rc={};
+    snap.forEach(d=>{const data=d.data();if(!data.active||!data.lat||!data.lng)return;allBusData.push({id:d.id,...data});if(data.routeId)rIds.add(data.routeId);rc[data.routeId]=(rc[data.routeId]||0)+1;});
+    const stale=allBusData.filter(b=>{const u=b.updatedAt?.toDate?.();return u&&Date.now()-u.getTime()>60000;}).length;
+    const dup=Object.values(rc).filter(c=>c>1).length;
+    const al=stale+dup;
+    G('st-a').textContent=allBusData.length;G('st-r').textContent=rIds.size;G('st-al').textContent=al;
+    G('nb-b').textContent=allBusData.length;G('nb-a').style.display=al>0?'':'none';G('nb-a').textContent=al;
+    ['kp-a','kp-r','kp-s','kp-d'].forEach((id,i)=>{const el=G(id);if(el)el.textContent=[allBusData.length,rIds.size,stale,dup][i];});
+    updMap(allBusData,rc);updEtaPanel(allBusData);updActiveRoutes(allBusData,rc);updAlerts(allBusData,rc);
+    writeETAs(allBusData);
+  });
+}
+
+/* ── IVR ETA SYNC ── */
+function writeETAs(buses){
+  clearTimeout(etaWriteTimer);
+  etaWriteTimer=setTimeout(async()=>{
+    for(const b of buses){
+      const etas=getStopETAs(b);if(!etas.length)continue;
+      const etaMap={};
+      etas.forEach((s,i)=>{if(!s.passed&&s.etaIso)etaMap[`stop_${i}`]={name:s.name,eta:s.etaIso,stopId:s.stopId||null};});
+      try{await setDoc(doc(db,'bus_eta',b.id),{routeId:b.routeId,routeName:b.routeName,driverName:b.driverName||'',stops:etaMap,updatedAt:serverTimestamp()},{merge:true});}catch{}
+    }
+  },15000);
+}
+
+/* ── MAP ── */
+function updMap(buses,rc){
+  if(!gMap)return;
+  const ids=new Set(buses.map(b=>b.id));
+  Object.keys(busGMarkers).forEach(id=>{if(!ids.has(id)){busGMarkers[id].marker.setMap(null);delete busGMarkers[id];}});
+  buses.forEach(b=>{
+    const pos={lat:b.lat,lng:b.lng},dp=rc[b.routeId]>1,isSel=selBusId===b.id;
+    const icon=mkBusIcon(b.routeName||b.routeId,dp,isSel);
+    const etas=getStopETAs(b),next=etas.find(s=>!s.passed);
+    const pop=buildPopup(b,etas,next);
+    if(busGMarkers[b.id]){busGMarkers[b.id].marker.setPosition(pos);busGMarkers[b.id].marker.setIcon(icon);busGMarkers[b.id].iw.setContent(pop);}
+    else{
+      const marker=new google.maps.Marker({position:pos,map:gMap,zIndex:100,icon,title:b.routeName||b.routeId});
+      const iw=new google.maps.InfoWindow({content:pop,maxWidth:300});
+      marker.addListener('click',()=>{if(openInfoWindow)openInfoWindow.close();iw.open(gMap,marker);openInfoWindow=iw;selBusId=b.id;updEtaPanel(allBusData);});
+      busGMarkers[b.id]={marker,iw};
+    }
+  });
+}
+
+function buildPopup(b,etas,next){
+  const u=b.updatedAt?.toDate?.();
+  const rows=etas.slice(0,6).map((s,i)=>{const isCur=!s.passed&&i===etas.findIndex(x=>!x.passed);
+    return`<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:11px;${s.passed?'color:#94a3b8;text-decoration:line-through':isCur?'color:#2563eb;font-weight:700':''}"><span>${i+1}. ${s.name}</span><span>${s.passed?'✓':fmtTime(s.etaIso)}</span></div>`;}).join('');
+  const navUrl=next?`https://www.google.com/maps/dir/?api=1&destination=${next.lat},${next.lng}&travelmode=driving`:'';
+  return`<div style="font-family:Rubik,sans-serif;direction:rtl;padding:12px;min-width:185px">
+    <div style="font-weight:700;font-size:15px;margin-bottom:4px">🚌 ${b.routeName||b.routeId}</div>
+    ${b.driverName?`<div style="font-size:12px;color:#64748b;margin-bottom:3px">👨‍✈️ ${b.driverName}</div>`:''}
+    ${next?`<div style="font-size:12px;color:#2563eb;font-weight:600;margin-bottom:4px">▶ ${next.name} · ${fmtTime(next.etaIso)}</div>`:''}
+    <div style="font-size:11px;color:#64748b">⏱ לפני ${u?timeSince(u):'—'}</div>
+    ${rows?`<div style="margin-top:7px;border-top:1px solid #e2e8f0;padding-top:7px">${rows}</div>`:''}
+    ${navUrl?`<a href="${navUrl}" target="_blank" style="display:block;margin-top:7px;background:#2563eb;color:#fff;border-radius:8px;padding:6px;font-size:12px;font-weight:700;text-decoration:none;text-align:center">🗺️ נווט</a>`:''}
+    <button onclick="endTripETA('${b.id}')" style="display:block;width:100%;margin-top:5px;background:rgba(239,68,68,.1);color:#dc2626;border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:5px;font-family:Rubik,sans-serif;font-size:11px;font-weight:700;cursor:pointer">⏹ סיים נסיעה</button>
+  </div>`;
+}
+
+window.fitAll=function(){
+  if(!gMap||!allBusData.length)return;
+  const bounds=new google.maps.LatLngBounds();
+  allBusData.forEach(b=>bounds.extend({lat:b.lat,lng:b.lng}));
+  gMap.fitBounds(bounds,{padding:60});
+};
+
+/* ── ETA PANEL ── */
+function updEtaPanel(buses){
+  const p=G('eta-panel');if(!p)return;
+  if(!buses.length){p.innerHTML='<div class="eta-empty">🚌 אין אוטובוסים פעילים</div>';return;}
+  p.innerHTML=buses.map(b=>{
+    const u=b.updatedAt?.toDate?.(),stale=u&&Date.now()-u.getTime()>60000;
+    const etas=getStopETAs(b),next=etas.find(s=>!s.passed),isSel=selBusId===b.id;
+    const rows=etas.slice(0,5).map((s,i)=>{const dc=s.passed?'done':i===etas.findIndex(x=>!x.passed)?'cur':'fut';
+      return`<div class="eta-sr"><div class="eta-dot ${dc}">${s.passed?'✓':i+1}</div><div class="eta-sn ${s.passed?'done':''}">${s.name}</div><div class="eta-t ${s.passed?'done':dc==='cur'?'live':'old'}">${s.passed?'✓':fmtTime(s.etaIso)}</div></div>`;}).join('');
+    return`<div class="eta-card ${isSel?'sel':''}" onclick="focusBus('${b.id}',${b.lat},${b.lng})">
+      <div class="eta-bus-hdr"><div><div class="eta-bus-nm">🚌 ${b.routeName||b.routeId}</div><div class="eta-bus-drv">${b.driverName||'—'}</div></div><span class="eta-badge ${stale?'stale':'live'}">${stale?'⏱':'● חי'}</span></div>
+      ${next?`<div class="eta-next"><div class="eta-next-lbl">תחנה הבאה</div><div class="eta-next-name">${next.name}</div><div class="eta-next-time">⏰ ${fmtTime(next.etaIso)} · ${fmtMin(next.etaIso)}</div></div>`:'<div class="eta-next" style="color:#64748b;font-size:12px">✅ כל התחנות עברו</div>'}
+      <div class="eta-stops">${rows}</div>
+      ${etas.length>5?`<div style="font-size:10px;color:var(--t3);text-align:center;margin-top:3px">+${etas.length-5} עוד</div>`:''}
+      <button class="eta-end-btn" onclick="event.stopPropagation();endTripETA('${b.id}')">⏹ סיים נסיעה</button>
+    </div>`;
+  }).join('');
+}
+window.focusBus=function(id,lat,lng){
+  selBusId=id;showPage('pg-map',document.querySelector('.ni'));
+  if(gMap){gMap.panTo({lat:parseFloat(lat),lng:parseFloat(lng)});gMap.setZoom(16);
+    if(busGMarkers[id]){if(openInfoWindow)openInfoWindow.close();busGMarkers[id].iw.open(gMap,busGMarkers[id].marker);openInfoWindow=busGMarkers[id].iw;}
+  }
+  updEtaPanel(allBusData);
+};
+
+/* ── ACTIVE ROUTES PAGE ── */
+function updActiveRoutes(buses,rc){
+  const grid=G('active-routes-grid');if(!grid)return;
+  const q=(G('route-search-inp')?.value||'').toLowerCase();
+  const byRoute={};
+  buses.forEach(b=>{if(!byRoute[b.routeId])byRoute[b.routeId]=[];byRoute[b.routeId].push(b);});
+  Object.keys(rCache).forEach(rid=>{if(!byRoute[rid])byRoute[rid]=[];});
+  let entries=Object.entries(byRoute);
+  if(q)entries=entries.filter(([rid,bs])=>(rCache[rid]?.name||'').toLowerCase().includes(q)||bs.some(b=>(b.driverName||'').toLowerCase().includes(q)));
+  if(!entries.length){grid.innerHTML='<div class="empty-st" style="grid-column:1/-1"><div class="ei">🚌</div><p>אין תוצאות</p></div>';return;}
+  grid.innerHTML=entries.map(([rid,bs])=>{
+    const route=rCache[rid],routeName=route?.name||rid;
+    const active=bs.filter(b=>b.active);const hasActive=active.length>0;
+    const first=active[0],u=first?.updatedAt?.toDate?.(),stale=u&&Date.now()-u.getTime()>60000;
+    const dp=rc[rid]>1,stops=route?.stations||[];
+    return`<div class="rc">
+      <div class="rc-status-dot ${hasActive?stale?'':'active':''}"></div>
+      <div class="rc-nm">${routeName}</div>
+      <div class="rc-meta"><span>🚏 ${stops.length} תחנות</span><span class="badge ${hasActive?stale?'stale':'live':'off'}">${hasActive?stale?'⏱ מאחר':'● פעיל':'○ לא פעיל'}</span></div>
+      ${first?`<div class="rc-drv-info">👨‍✈️ ${first.driverName||'—'} ${first.speed?'· '+Math.round(first.speed*3.6)+' קמ"ש':''}</div>`:''}
+      ${dp?'<div style="font-size:11px;color:var(--red);margin-bottom:7px">⚠️ שני נהגים על אותו קו</div>':''}
+      <div class="rc-stops-mini">${stops.slice(0,4).map((s,i)=>`<div class="rc-stop-item"><div class="rc-stop-num">${i+1}</div>${s.name}</div>`).join('')}${stops.length>4?`<div class="rc-stop-item" style="color:var(--t3)">+${stops.length-4} עוד</div>`:''}</div>
+      <div class="rc-ac">
+        <button class="btn bp bsm" onclick="openRouteOnMap('${rid}')">🗺️ מסלול</button>
+        ${first?`<button class="btn bs bsm" onclick="openBusOnMap('${first.id}')">📍 מיקום</button>`:''}
+        ${first?`<button class="btn br bsm" onclick="endTripETA('${first.id}')">⏹ סיים</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+G('route-search-inp')?.addEventListener('input',()=>updActiveRoutes(allBusData,{}));
+
+/* ── GLOBAL SEARCH ── */
+G('g-search').addEventListener('input',function(){
+  const q=this.value.toLowerCase().trim(),dd=G('search-dropdown');
+  if(!q){dd.style.display='none';return;}
+  _srMatches=[];
+  allBusData.forEach(b=>{if((b.routeName||'').toLowerCase().includes(q)||(b.driverName||'').toLowerCase().includes(q))
+    _srMatches.push({label:`🚌 ${b.routeName||b.routeId} – ${b.driverName||'—'}`,fn:()=>focusBus(b.id,b.lat,b.lng)});});
+  Object.values(rCache).forEach(r=>{if((r.name||'').toLowerCase().includes(q))
+    _srMatches.push({label:`🛣️ ${r.name}`,fn:()=>showPage('pg-routes',null)});});
+  if(!_srMatches.length){dd.innerHTML='<div class="sr-item" style="color:var(--t3)">אין תוצאות</div>';dd.style.display='block';return;}
+  dd.innerHTML=_srMatches.slice(0,6).map((m,i)=>`<div class="sr-item" onclick="_srClick(${i})">${m.label}</div>`).join('');
+  dd.style.display='block';
+});
+window._srClick=function(i){_srMatches[i].fn();G('search-dropdown').style.display='none';G('g-search').value='';};
+document.addEventListener('click',e=>{if(!e.target.closest('#top-search-wrap'))G('search-dropdown').style.display='none';});
+
+/* ── ALERTS ── */
+function updAlerts(buses,rc){
+  const w=G('al-wrap'),items=[];
+  Object.entries(rc).forEach(([rid,c])=>{if(c>1)items.push({cls:'',ic:'⚠️',mg:`שני נהגים על קו ${rCache[rid]?.name||rid}`,sb:'יש לבדוק ולתקן'});});
+  buses.forEach(b=>{const u=b.updatedAt?.toDate?.();if(u&&Date.now()-u.getTime()>120000)items.push({cls:'warn',ic:'🔕',mg:`קו ${b.routeName} – אין עדכון`,sb:`נהג: ${b.driverName||'—'}`});});
+  w.innerHTML=!items.length?'<div class="al-card ok"><span class="al-ic">✅</span><div><div class="al-mg">אין התראות</div><div class="al-sb">הכל תקין</div></div></div>':items.map(a=>`<div class="al-card ${a.cls}"><span class="al-ic">${a.ic}</span><div><div class="al-mg">${a.mg}</div><div class="al-sb">${a.sb}</div></div></div>`).join('');
+}
+
+/* ── MANAGE ROUTES ── */
+async function loadRoutes(){
+  const snap=await getDocs(collection(db,'routes'));
+  rCache={};const g=G('rt-grid');if(g)g.innerHTML='';
+  snap.forEach(d=>{
+    rCache[d.id]={id:d.id,...d.data()};
+    if(!g)return;
+    const c=document.createElement('div');c.className='rc';
+    const st=d.data().stations||[];
+    c.innerHTML=`<div class="rc-nm">🛣️ ${d.data().name}</div>
+      <div class="rc-meta"><span>🚏 ${st.length} תחנות</span></div>
+      <div class="rc-stops-mini">${st.map((s,i)=>`<div class="rc-stop-item"><div class="rc-stop-num">${i+1}</div>${s.name}</div>`).join('')}</div>
+      <div class="rc-ac"><button class="btn bp bsm" onclick="openRouteOnMap('${d.id}')">🗺️ מסלול</button><button class="btn bs bsm" onclick="openRM('${d.id}')">✏️ ערוך</button><button class="btn br bsm" onclick="delRoute('${d.id}')">🗑</button></div>`;
+    g.appendChild(c);
+  });
+  if(g&&!snap.size)g.innerHTML='<div class="empty-st" style="grid-column:1/-1"><div class="ei">🛣️</div><p>אין קווים עדיין</p></div>';
+}
+
+window.openRM=function(id){
+  editRId=id;stBuf=id&&rCache[id]?JSON.parse(JSON.stringify(rCache[id].stations||[])):[];
+  G('r-name').value=id?rCache[id]?.name||'':'';G('mo-r-ti').textContent=id?'ערוך קו':'הוסף קו חדש';
+  renderSL();G('mo-r').classList.add('open');
+  setTimeout(()=>{
+    const inp=G('places-input');inp.value='';
+    window._onGm(()=>{
+      if(inp._ac)google.maps.event.clearInstanceListeners(inp._ac);
+      const ac=new google.maps.places.Autocomplete(inp,{componentRestrictions:{country:'il'}});
+      inp._ac=ac;ac.addListener('place_changed',()=>{
+        const p=ac.getPlace();if(!p.geometry)return;
+        stBuf.push({id:'s'+Date.now(),name:p.name||p.formatted_address,lat:p.geometry.location.lat(),lng:p.geometry.location.lng(),address:p.formatted_address||''});
+        renderSL();inp.value='';
+      });
+    });
+  },300);
+};
+window.closeRM=()=>G('mo-r').classList.remove('open');
+function renderSL(){
+  const el=G('st-list');
+  el.innerHTML=stBuf.length?stBuf.map((s,i)=>`<div class="st-row"><div class="st-n">${i+1}</div><div style="flex:1;min-width:0"><div class="st-nm">${s.name}</div><div class="st-ad">${s.stopId?'#'+s.stopId:s.address||`${s.lat?.toFixed(4)}, ${s.lng?.toFixed(4)}`}</div></div><button class="st-dl" onclick="rmSt(${i})">✕</button></div>`).join(''):'<div style="color:var(--t3);font-size:13px;text-align:center;padding:12px">לא נוספו תחנות עדיין</div>';
+}
+window.rmSt=i=>{stBuf.splice(i,1);renderSL();};
+window.addManSt=function(){
+  const n=G('m-sn').value.trim(),la=parseFloat(G('m-la').value),ln=parseFloat(G('m-ln').value);
+  if(!n||isNaN(la)||isNaN(ln))return alert('נא למלא שם, קו רוחב וקו אורך');
+  stBuf.push({id:'s'+Date.now(),name:n,lat:la,lng:ln,address:''});
+  renderSL();['m-sn','m-la','m-ln'].forEach(id=>{const el=G(id);if(el)el.value='';});
+};
+window.saveRoute=async function(){
+  const name=G('r-name').value.trim();if(!name)return alert('חסר שם קו');
+  const data={name,stations:stBuf,updatedAt:serverTimestamp()};
+  if(editRId)await updateDoc(doc(db,'routes',editRId),data);
+  else await addDoc(collection(db,'routes'),{...data,createdAt:serverTimestamp()});
+  window.closeRM();loadRoutes();
+};
+window.delRoute=async function(id){if(!confirm('למחוק?'))return;await deleteDoc(doc(db,'routes',id));loadRoutes();};
+
+/* ── USERS ── */
+async function loadUsers(){
+  const snap=await getDocs(collection(db,'users'));
+  const tb=G('u-tbody');if(!tb)return;tb.innerHTML='';
+  snap.forEach(d=>{
+    const u=d.data();
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="padding:11px 13px;font-size:13px;font-weight:600">${u.driverName||u.name||'—'}</td>
+      <td style="padding:11px 13px;font-size:13px;color:var(--t2)">${u.operatorName||'—'}</td>
+      <td style="padding:11px 13px;font-size:13px;color:var(--t2)">${u.email||'—'}</td>
+      <td style="padding:11px 13px"><span style="background:${u.role==='dispatcher'?'rgba(59,130,246,.1)':'rgba(16,185,129,.1)'};color:${u.role==='dispatcher'?'#2563eb':'#059669'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${u.role==='dispatcher'?'🎛 סדרן':'🚌 נהג'}</span></td>
+      <td style="padding:11px 13px;font-size:12px;color:var(--t3)">${u.hasPassword?'✓ הוגדרה':'—'}</td>
+      <td style="padding:11px 13px;font-size:12px;color:var(--t2)">${u.lastSeen?.toDate?.()?.toLocaleString('he-IL')||'—'}</td>
+      <td style="padding:11px 13px"><select class="r-sel" onchange="changeRole('${d.id}',this.value)"><option value="driver" ${u.role==='driver'?'selected':''}>נהג</option><option value="dispatcher" ${u.role==='dispatcher'?'selected':''}>סדרן</option></select> <button class="btn br bsm" onclick="delUser('${d.id}')" style="margin-right:4px">🗑</button></td>`;
+    tb.appendChild(tr);
+  });
+  if(!snap.size)tb.innerHTML='<tr><td colspan="7"><div class="empty-st"><p>אין משתמשים</p></div></td></tr>';
+}
+window.openUM=()=>{
+  G('mo-u-ti').textContent='הוסף משתמש';
+  ['u-driver-name','u-operator-name','u-em','u-pw'].forEach(id=>{const el=G(id);if(el)el.value='';});
+  G('u-save-msg').style.display='none';G('mo-u').classList.add('open');
+};
+window.closeUM=()=>G('mo-u').classList.remove('open');
+
+window.saveUser=async function(){
+  const driverName=G('u-driver-name').value.trim(),operatorName=G('u-operator-name').value.trim();
+  const email=G('u-em').value.trim(),pw=G('u-pw').value,role=G('u-rl').value;
+  const msg=G('u-save-msg');
+  if(!email)return alert('נא להזין אימייל');
+  if(pw&&pw.length<6)return alert('הסיסמה חייבת להכיל לפחות 6 תווים');
+  G('btn-save-user').disabled=true;
+  msg.style.display='block';msg.style.background='rgba(59,130,246,.1)';msg.style.color='#2563eb';msg.textContent='שומר...';
+  try{
+    let uid=null;
+    if(pw){
+      try{const cred=await createUserWithEmailAndPassword(auth,email,pw);uid=cred.user.uid;}
+      catch(e){if(e.code!=='auth/email-already-in-use')throw e;msg.textContent='⚠️ אימייל קיים – מעדכן נתונים';}
+    }
+    const userData={driverName,operatorName,email,role,hasPassword:!!pw,createdAt:serverTimestamp()};
+    if(uid)await setDoc(doc(db,'users',uid),userData);
+    else await addDoc(collection(db,'users'),userData);
+    msg.style.background='rgba(16,185,129,.1)';msg.style.color='#059669';msg.textContent=`✅ ${driverName||email} נשמר`;
+    setTimeout(()=>window.closeUM(),1400);loadUsers();
+  }catch(e){msg.style.background='rgba(239,68,68,.1)';msg.style.color='var(--red)';msg.textContent='❌ '+e.message;}
+  G('btn-save-user').disabled=false;
+};
+window.changeRole=async(id,r)=>await updateDoc(doc(db,'users',id),{role:r});
+window.delUser=async function(id){if(!confirm('למחוק?'))return;await deleteDoc(doc(db,'users',id));loadUsers();};
+
+/* ── REPORTS ── */
+window.dlReport=async function(type){
+  let rows=[],title='';
+  if(type==='daily'){title='דוח_יומי';const s=await getDocs(collection(db,'trips'));rows.push(['מזהה','תאריך','נהג','קו']);s.forEach(d=>{const p=d.id.split('_');rows.push([d.id,p[1]||'',p[0]||'',d.data().routeName||'']);});}
+  if(type==='routes'){title='דוח_קווים';rows.push(['שם קו','תחנות','פרטים']);Object.values(rCache).forEach(r=>{rows.push([r.name,r.stations?.length||0,r.stations?.map(s=>s.name).join(' | ')||'']);});}
+  if(type==='drivers'){title='דוח_נהגים';const s=await getDocs(collection(db,'users'));rows.push(['שם נהג','שם מפעיל','אימייל','תפקיד']);s.forEach(d=>{const u=d.data();rows.push([u.driverName||u.name||'',u.operatorName||'',u.email||'',u.role||'']);});}
+  if(type==='eta'){title='דוח_ETA';rows.push(['קו','נהג','תחנה','מספר','ETA','סטטוס']);allBusData.forEach(b=>{getStopETAs(b).forEach((s,i)=>{rows.push([b.routeName||'',b.driverName||'',s.name,i+1,fmtTime(s.etaIso),s.passed?'עבר':'ממתין']);});});}
+  if(!rows.length)return alert('אין נתונים לייצוא');
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'})),download:`${title}_${new Date().toISOString().slice(0,10)}.csv`});
+  a.click();
+};
+</script>
+</body>
+</html>
