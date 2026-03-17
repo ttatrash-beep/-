@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <title>FleetPro – ממשק נהג</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0D1117;--sur:#161B22;--sur2:#21262D;--sur3:#30363D;
+      --blue:#3B82F6;--bdk:#1E3A8A;
+      --green:#10B981;--orange:#F59E0B;--red:#EF4444;
+      --text:#E6EDF3;--t2:#8B949E;--t3:#484F58;
+      --bor:#30363D;--font:'Rubik',sans-serif;
+    }
+    html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden}
+    body{display:flex;flex-direction:column}
+
+    /* HEADER */
+    #hdr{background:var(--sur);border-bottom:1px solid var(--bor);padding:0 16px;height:54px;
+      display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:50}
+    .logo{font-size:18px;font-weight:800;color:var(--blue)}
+    .logo span{color:var(--text)}
+    #spill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;
+      border:1px solid var(--bor);background:var(--sur2);transition:all .3s}
+    #spill.on{border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.1);animation:ring 2s infinite}
+    #spill.ok{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.1)}
+    #spill.err{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1)}
+    @keyframes ring{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.3)}50%{box-shadow:0 0 0 5px rgba(59,130,246,0)}}
+    .sd{width:7px;height:7px;border-radius:50%;background:var(--t3);flex-shrink:0}
+    #spill.on .sd{background:var(--blue);animation:blink 1s infinite}
+    #spill.ok .sd{background:var(--green);animation:blink 2s infinite}
+    #spill.err .sd{background:var(--red)}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    #spill-txt{font-size:11px;font-weight:700;color:var(--t2)}
+    #spill.on #spill-txt{color:var(--blue)}
+    #spill.ok #spill-txt{color:var(--green)}
+    #spill.err #spill-txt{color:var(--red)}
+
+    /* PAGES */
+    #pages{flex:1;min-height:0;position:relative}
+    .page{position:absolute;inset:0;display:none;flex-direction:column;overflow-y:auto;
+      padding:14px;gap:12px;padding-bottom:70px}
+    .page.show{display:flex}
+    #pg-map.show{padding:0;gap:0;overflow:hidden}
+
+    /* BOTTOM NAV */
+    #bnav{position:fixed;bottom:0;left:0;right:0;height:58px;background:var(--sur);
+      border-top:1px solid var(--bor);display:none;z-index:50}
+    #bnav.show{display:flex}
+    .bn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:2px;cursor:pointer;opacity:.45;font-size:10px;font-weight:600;color:var(--t2);transition:opacity .15s}
+    .bn.act{opacity:1;color:var(--blue)}
+    .bn-ic{font-size:20px}
+
+    /* CARDS */
+    .card{background:var(--sur);border:1px solid var(--bor);border-radius:14px;padding:16px}
+    .ct{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--t2);margin-bottom:12px}
+
+    /* BUTTONS */
+    .btn{border:none;border-radius:11px;cursor:pointer;font-family:var(--font);font-size:14px;
+      font-weight:700;padding:13px;transition:all .15s;width:100%;display:flex;align-items:center;justify-content:center;gap:7px}
+    .btn-p{background:var(--blue);color:#fff}
+    .btn-g-wh{background:#fff;color:#1e293b;border-radius:11px;padding:12px;font-family:var(--font);
+      font-size:14px;font-weight:600;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:9px;border:none}
+    .btn-g-wh svg{width:18px;height:18px;flex-shrink:0}
+    .btn-s{background:var(--green);color:#0D1117}
+    .btn-d{background:var(--red);color:#fff}
+    .btn-sec{background:var(--sur2);color:var(--text);border:1px solid var(--bor)}
+    .btn:disabled{opacity:.35;cursor:not-allowed}
+    .btn-sm{padding:7px 12px;font-size:12px;width:auto}
+    .divider{display:flex;align-items:center;gap:8px;color:var(--t3);font-size:12px;margin:12px 0}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--bor)}
+
+    /* FORMS */
+    .ig{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+    label{font-size:12px;font-weight:500;color:var(--t2)}
+    input{background:var(--sur2);border:1px solid var(--bor);border-radius:9px;color:var(--text);
+      font-family:var(--font);font-size:14px;padding:11px 13px;width:100%;outline:none;transition:border-color .2s}
+    input:focus{border-color:var(--blue)}
+    .err-msg{color:#fca5a5;font-size:12px;padding:7px;background:rgba(239,68,68,.1);border-radius:7px;display:none}
+
+    /* PROFILE */
+    .ava{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--bdk),var(--blue));
+      display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;overflow:hidden;flex-shrink:0}
+    .ava img{width:100%;height:100%;object-fit:cover}
+
+    /* ROUTE ITEMS */
+    .ri{background:var(--sur2);border:2px solid var(--bor);border-radius:11px;padding:13px;
+      cursor:pointer;transition:all .15s;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+    .ri:hover,.ri.sel{border-color:var(--blue)}
+    .ri.sel{background:rgba(59,130,246,.08)}
+    .ri-name{font-size:14px;font-weight:700}
+    .ri-sub{font-size:11px;color:var(--t2);margin-top:2px}
+
+    /* GPS GRID */
+    .gg{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .gc{background:var(--sur2);border-radius:9px;padding:11px;border:1px solid var(--bor)}
+    .gc.hi{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.05)}
+    .gc-l{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+    .gc-v{font-size:14px;font-weight:700}
+    .gc.hi .gc-v{color:var(--blue)}
+    .gps-bar{display:flex;align-items:center;gap:8px;background:rgba(59,130,246,.08);
+      border:1px solid rgba(59,130,246,.2);border-radius:9px;padding:9px 13px;
+      font-size:12px;font-weight:600;color:var(--blue);margin-bottom:12px}
+    .gps-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:blink 1.5s infinite;flex-shrink:0}
+
+    #offline-banner{background:rgba(245,158,11,.1);border:1px solid var(--orange);
+      border-radius:9px;padding:9px 13px;font-size:12px;color:var(--orange);text-align:center;display:none}
+    #log{max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+    .le{font-size:11px;color:var(--t2);padding:4px 0;border-bottom:1px solid var(--bor);display:flex;gap:7px}
+    .lt{color:var(--blue);font-weight:700;min-width:42px;flex-shrink:0}
+    .hidden{display:none!important}
+    ::-webkit-scrollbar{width:3px}
+    ::-webkit-scrollbar-thumb{background:var(--bor);border-radius:2px}
+
+    /* ── MAP PAGE ── */
+    #map-top{background:linear-gradient(135deg,#0f1f3d,#1a3a8f);border-bottom:1px solid rgba(59,130,246,.3);
+      padding:10px 14px;flex-shrink:0;display:none;align-items:center;justify-content:space-between;gap:10px}
+    #map-top.show{display:flex}
+    .mt-info{flex:1}
+    .mt-lbl{font-size:10px;color:#93c5fd;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+    .mt-name{font-size:16px;font-weight:700;color:#fff;margin-top:1px}
+    .mt-sub{font-size:11px;color:#93c5fd;margin-top:1px}
+    .mt-eta-n{font-size:24px;font-weight:800;color:#60a5fa;line-height:1}
+    .mt-eta-l{font-size:9px;color:#93c5fd;text-align:center}
+
+    /* gmap-wrap holds BOTH the map div and our overlay as siblings */
+    #gmap-wrap{flex:1;min-height:0;position:relative}
+    #gmap{position:absolute;inset:0}
+    /* overlay is sibling of gmap, not child – Google Maps won't clear it */
+    #map-overlay{position:absolute;inset:0;z-index:5;background:var(--sur2);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:10px;text-align:center;padding:20px;transition:opacity .3s}
+    #map-overlay.gone{display:none}
+    #prox-ring{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+      z-index:10;display:none;background:rgba(16,185,129,.92);border-radius:12px;
+      padding:10px 18px;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;
+      pointer-events:none;animation:ppulse 1s ease infinite}
+    @keyframes ppulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}50%{box-shadow:0 0 0 10px rgba(16,185,129,0)}}
+
+    #map-bot{background:var(--sur);border-top:1px solid var(--bor);
+      padding:8px 12px;flex-shrink:0;overflow-x:auto;display:none}
+    #map-bot.show{display:flex;gap:8px;align-items:center}
+    .mb-stop{display:flex;align-items:center;gap:4px;white-space:nowrap}
+    .mb-dot{width:7px;height:7px;border-radius:50%}
+    .mb-dot.done{background:var(--green)}
+    .mb-dot.cur{background:var(--blue);animation:blink 1.5s infinite}
+    .mb-dot.fut{background:var(--bor)}
+
+    /* ARRIVAL TOAST */
+    #toast{position:fixed;top:0;left:0;right:0;z-index:9999;
+      background:linear-gradient(135deg,#064e3b,#065f46);border-bottom:3px solid var(--green);
+      padding:12px 16px;display:flex;align-items:center;gap:12px;
+      transform:translateY(-110%);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+    #toast.show{transform:translateY(0)}
+    #toast-ic{font-size:28px;animation:tbounce .5s ease infinite alternate}
+    @keyframes tbounce{from{transform:scale(1)}to{transform:scale(1.15)}}
+    #toast-body{flex:1}
+    #toast-lbl{font-size:10px;color:#6ee7b7;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+    #toast-name{font-size:19px;font-weight:800;color:#fff}
+    #toast-sub{font-size:11px;color:#a7f3d0;margin-top:2px}
+    #toast-x{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);
+      border:none;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+    /* SCHEDULE */
+    .nsb{background:linear-gradient(135deg,#1e3a5f,#1a3a8f);border:1px solid rgba(59,130,246,.3);
+      border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px}
+    .nsb-pulse{width:12px;height:12px;border-radius:50%;background:var(--blue);position:relative;flex-shrink:0}
+    .nsb-pulse::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--blue);animation:rp 2s infinite}
+    @keyframes rp{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2)}}
+    .nsb-info{flex:1}
+    .nsb-lbl{font-size:10px;color:#93c5fd;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+    .nsb-name{font-size:16px;font-weight:700;color:#fff;margin-top:2px}
+    .nsb-sub{font-size:11px;color:#93c5fd;margin-top:2px}
+    .nsb-eta-n{font-size:23px;font-weight:800;color:#60a5fa}
+    .nsb-eta-l{font-size:9px;color:#93c5fd;text-align:center}
+    .srow{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+    .sc{background:var(--sur2);border:1px solid var(--bor);border-radius:11px;padding:11px 9px;text-align:center}
+    .sc-n{font-size:20px;font-weight:800}
+    .sc-l{font-size:10px;color:var(--t2);margin-top:2px}
+    .sc.blue .sc-n{color:var(--blue)}
+    .sc.green .sc-n{color:var(--green)}
+    .sc.orange .sc-n{color:var(--orange)}
+    .tl{display:flex;flex-direction:column}
+    .tl-row{display:flex;gap:10px;padding:8px 0}
+    .tl-col{display:flex;flex-direction:column;align-items:center;width:26px;flex-shrink:0}
+    .tl-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;z-index:1}
+    .tl-dot.done{background:var(--green);color:#fff}
+    .tl-dot.cur{background:var(--blue);color:#fff;animation:curp 2s infinite}
+    @keyframes curp{0%,100%{box-shadow:0 0 0 3px rgba(59,130,246,.3)}50%{box-shadow:0 0 0 7px rgba(59,130,246,.1)}}
+    .tl-dot.fut{background:var(--sur3);color:var(--t2)}
+    .tl-line{width:2px;flex:1;min-height:16px;margin:2px 0}
+    .tl-line.done{background:var(--green)}
+    .tl-line.pend{background:var(--bor)}
+    .tl-info{flex:1;padding-top:3px;padding-bottom:6px}
+    .tl-name{font-size:13px;font-weight:700}
+    .tl-meta{font-size:11px;color:var(--t2);margin-top:2px}
+    .tl-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:4px}
+    .tl-badge.done{background:rgba(16,185,129,.1);color:var(--green)}
+    .tl-badge.cur{background:rgba(59,130,246,.15);color:var(--blue)}
+    .tl-badge.fut{background:var(--sur3);color:var(--t2)}
+    /* DISPATCHER REMOTE-STOP TOAST */
+    #disp-toast{position:fixed;top:0;left:0;right:0;z-index:10000;
+      background:linear-gradient(135deg,#1e1a08,#78350f);
+      border-bottom:3px solid var(--orange);
+      padding:14px 16px;display:flex;align-items:center;gap:12px;
+      transform:translateY(-110%);transition:transform .4s cubic-bezier(.22,1,.36,1)}
+    #disp-toast.show{transform:translateY(0)}
+    #disp-toast-ic{font-size:26px;animation:tbounce .6s ease infinite alternate}
+    #disp-toast-txt{flex:1}
+    #disp-toast-title{font-size:16px;font-weight:800;color:#fff}
+    #disp-toast-sub{font-size:12px;color:#fde68a;margin-top:2px}
+    /* ROUTE SEARCH */
+    #route-search-wrap{display:flex;align-items:center;gap:7px;background:var(--sur2);border:1px solid var(--bor);border-radius:9px;padding:8px 11px;margin-bottom:10px}
+    #route-search-wrap input{border:none;background:none;font-family:var(--font);font-size:13px;color:var(--text);outline:none;width:100%}
+    #route-search-wrap input::placeholder{color:var(--t3)}
+  </style>
+</head>
+<body>
+
+<!-- DISPATCHER REMOTE-STOP TOAST -->
+<div id="disp-toast">
+  <div id="disp-toast-ic">🛑</div>
+  <div id="disp-toast-txt">
+    <div id="disp-toast-title">הנסיעה הסתיימה על ידי הסדרן</div>
+    <div id="disp-toast-sub">הנסיעה הופסקה מרחוק</div>
+  </div>
+</div>
+
+<!-- TOAST: lives outside #pages so Google Maps never touches it -->
+<div id="toast">
+  <div id="toast-ic">🚏</div>
+  <div id="toast-body">
+    <div id="toast-lbl">הגעת לתחנה!</div>
+    <div id="toast-name">—</div>
+    <div id="toast-sub">—</div>
+  </div>
+  <button id="toast-x">✕</button>
+</div>
+
+<div id="hdr">
+  <div class="logo">Fleet<span>Pro</span></div>
+  <div id="spill"><div class="sd"></div><span id="spill-txt">לא מחובר</span></div>
+</div>
+
+<div id="pages">
+
+  <!-- ══ LOGIN ══ -->
+  <div class="page show" id="pg-login">
+    <div class="card" style="margin-top:16px">
+      <h2 style="font-size:21px;font-weight:800;margin-bottom:4px">ברוך הבא 👋</h2>
+      <p style="color:var(--t2);font-size:13px;margin-bottom:16px">התחבר כדי להתחיל לשדר מיקום</p>
+      <!-- Google -->
+      <button class="btn-g-wh" id="btn-google">
+        <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        כניסה עם Google
+      </button>
+      <div class="divider">או</div>
+      <div class="ig"><label>אימייל</label><input id="em" type="email" placeholder="driver@company.com" autocomplete="email"/></div>
+      <div class="ig"><label>סיסמה</label><input id="pw" type="password" placeholder="••••••••" autocomplete="current-password"/></div>
+      <!-- Remember me -->
+      <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13px;color:var(--t2);margin-bottom:14px;margin-top:2px">
+        <input type="checkbox" id="l-remember" style="width:16px;height:16px;accent-color:var(--blue);cursor:pointer" checked/>
+        זכור אותי במכשיר זה
+      </label>
+      <button class="btn btn-p" id="btn-email">כניסה</button>
+      <div class="err-msg" id="err-msg"></div>
+    </div>
+  </div>
+
+  <!-- ══ HOME ══ -->
+  <div class="page" id="pg-home">
+    <div id="offline-banner">⚠️ אין חיבור – נתונים נשמרים מקומית</div>
+    <div class="card">
+      <div class="ct">פרטי נהג</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="ava" id="d-ava">?</div>
+          <div>
+            <div style="font-size:16px;font-weight:700" id="d-name">—</div>
+            <div style="font-size:12px;color:var(--t2)" id="d-email">—</div>
+          </div>
+        </div>
+        <button class="btn btn-sec btn-sm" id="btn-lo">יציאה</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">סטטוס</div>
+      <div style="display:flex;align-items:center;gap:11px;padding:11px;background:var(--sur2);border-radius:9px;border:1px solid var(--bor)">
+        <div style="width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0" id="conn-ic">✅</div>
+        <div>
+          <div style="font-size:13px;font-weight:600" id="conn-lbl">מחובר</div>
+          <div style="font-size:11px;color:var(--t2);margin-top:1px" id="conn-sub">ממתין לבחירת קו</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="sec-route">
+      <div class="ct">בחר קו נסיעה</div>
+      <div id="route-search-wrap">
+        <span style="color:var(--t3);font-size:14px">🔍</span>
+        <input id="route-search" placeholder="חפש קו..." autocomplete="off"/>
+      </div>
+      <div id="route-list"><div style="color:var(--t2);font-size:13px;text-align:center;padding:16px">⏳ טוען קווים...</div></div>
+      <button class="btn btn-s" id="btn-start" disabled style="margin-top:6px">▶ התחל נסיעה</button>
+    </div>
+    <div class="card hidden" id="sec-track">
+      <div class="ct">שידור GPS פעיל</div>
+      <div class="gps-bar"><div class="gps-dot"></div><span>קו <b id="act-route">—</b> · <span id="gps-upd">0</span> עדכונים</span></div>
+      <div class="gg">
+        <div class="gc hi"><div class="gc-l">קו רוחב</div><div class="gc-v" id="gps-lat">—</div></div>
+        <div class="gc hi"><div class="gc-l">קו אורך</div><div class="gc-v" id="gps-lng">—</div></div>
+        <div class="gc"><div class="gc-l">דיוק</div><div class="gc-v" id="gps-acc">—</div></div>
+        <div class="gc"><div class="gc-l">עדכון</div><div class="gc-v" id="gps-time">—</div></div>
+        <div class="gc"><div class="gc-l">מהירות</div><div class="gc-v" id="gps-speed">—</div></div>
+        <div class="gc"><div class="gc-l">תחנה הבאה</div><div class="gc-v" id="next-st" style="font-size:11px">—</div></div>
+      </div>
+      <button class="btn btn-d" id="btn-stop" style="margin-top:12px">⏹ סיים נסיעה</button>
+    </div>
+    <div class="card">
+      <div class="ct">יומן</div>
+      <div id="log"><div class="le"><span class="lt">—</span><span>ממתין...</span></div></div>
+    </div>
+  </div>
+
+  <!-- ══ MAP ══ -->
+  <div class="page" id="pg-map">
+    <div id="map-top">
+      <div class="mt-info">
+        <div class="mt-lbl">תחנה הבאה</div>
+        <div class="mt-name" id="mt-name">—</div>
+        <div class="mt-sub" id="mt-sub">—</div>
+      </div>
+      <div style="text-align:center">
+        <div class="mt-eta-n" id="mt-eta">—</div>
+        <div class="mt-eta-l">ETA</div>
+      </div>
+    </div>
+    <div id="gmap-wrap">
+      <div id="gmap"></div>
+      <!-- overlay is SIBLING of #gmap, NOT child — Google Maps won't delete it -->
+      <div id="map-overlay">
+        <div style="font-size:44px">🗺️</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">מפה תופיע עם תחילת הנסיעה</div>
+        <div style="font-size:12px;color:var(--t2)">בחר קו ולחץ "התחל נסיעה"</div>
+      </div>
+      <div id="prox-ring"></div>
+    </div>
+    <div id="map-bot"><div id="map-stops-mini"></div></div>
+  </div>
+
+  <!-- ══ SCHEDULE ══ -->
+  <div class="page" id="pg-sched">
+    <div id="no-sched" class="card" style="text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">📋</div>
+      <div style="font-size:15px;font-weight:700">אין נסיעה פעילה</div>
+      <div style="font-size:12px;color:var(--t2);margin-top:5px">בחר קו ולחץ "התחל נסיעה"</div>
+    </div>
+    <div id="yes-sched" style="display:none;flex-direction:column;gap:12px">
+      <div class="srow">
+        <div class="sc green"><div class="sc-n" id="sc-done">0</div><div class="sc-l">עברו</div></div>
+        <div class="sc orange"><div class="sc-n" id="sc-rem">0</div><div class="sc-l">נותרו</div></div>
+        <div class="sc blue"><div class="sc-n" id="sc-total">0</div><div class="sc-l">סה"כ</div></div>
+      </div>
+      <div class="nsb">
+        <div class="nsb-pulse"></div>
+        <div class="nsb-info">
+          <div class="nsb-lbl">תחנה הבאה</div>
+          <div class="nsb-name" id="nsb-name">—</div>
+          <div class="nsb-sub" id="nsb-sub">מחשב...</div>
+        </div>
+        <div style="text-align:center">
+          <div class="nsb-eta-n" id="nsb-eta">—</div>
+          <div class="nsb-eta-l">ETA</div>
+        </div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div class="ct">מסלול מלא</div>
+        <div class="tl" id="tl"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="bnav">
+  <div class="bn act" id="bn-home"><div class="bn-ic">🏠</div><span>ראשי</span></div>
+  <div class="bn" id="bn-map"><div class="bn-ic">🗺️</div><span>מפה</span></div>
+  <div class="bn" id="bn-sched"><div class="bn-ic">📋</div><span>תחנות</span></div>
+</div>
+
+<script>
+// Google Maps callback — must be global, defined BEFORE the async script loads
+window._gmReady = false;
+window._gmQueue = [];
+window._gmCB = function() {
+  window._gmReady = true;
+  window._gmQueue.forEach(fn => fn());
+  window._gmQueue = [];
+};
+window._onGmReady = function(fn) {
+  if (window._gmReady) fn();
+  else window._gmQueue.push(fn);
+};
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl_gJpoNgi_utS4BY9jvUABvPRmjYxfaY&libraries=geometry,places&language=he&region=IL&callback=_gmCB" async defer></script>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,GoogleAuthProvider,signInWithPopup,setPersistence,browserLocalPersistence,browserSessionPersistence}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getFirestore,doc,setDoc,getDoc,collection,getDocs,addDoc,serverTimestamp,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const FB={apiKey:"AIzaSyCYebIWehiY8fqP54W8cuUoaoGYvqm7dtk",authDomain:"fleetpro-live-cfd2e.firebaseapp.com",projectId:"fleetpro-live-cfd2e",storageBucket:"fleetpro-live-cfd2e.firebasestorage.app",messagingSenderId:"720089208081",appId:"1:720089208081:web:642c3df765f403d89968b0"};
+const app=initializeApp(FB),auth=getAuth(app),db=getFirestore(app),gp=new GoogleAuthProvider();
+
+/* ── STATE ── */
+let watchId=null,updateCount=0,activeRoute=null,routeStations=[];
+let curIdx=0,lastArrived=null,offlineQ=[],selRouteId=null;
+let curLat=null,curLng=null,curSpeed=null;
+let etas=[];
+let toastTimer=null;
+let remoteStopUnsub=null; // מאזין לסיום נסיעה מרחוק
+const GEO=10; // metres
+
+/* ── GOOGLE MAPS ── */
+let gMap=null,dirSvc=null,dirRend=null,busM=null,stopMs=[];
+
+function initMap(){
+  if(gMap)return;
+  gMap=new google.maps.Map(G('gmap'),{
+    center:{lat:31.7767,lng:35.2345},zoom:14,
+    disableDefaultUI:true,zoomControl:true,
+    styles:[
+      {featureType:'all',elementType:'geometry',stylers:[{color:'#1a1f2e'}]},
+      {featureType:'all',elementType:'labels.text.fill',stylers:[{color:'#8892b0'}]},
+      {featureType:'all',elementType:'labels.text.stroke',stylers:[{color:'#1a1f2e'}]},
+      {featureType:'road',elementType:'geometry',stylers:[{color:'#2d3748'}]},
+      {featureType:'road.highway',elementType:'geometry',stylers:[{color:'#2563eb'}]},
+      {featureType:'water',elementType:'geometry',stylers:[{color:'#0d1a2e'}]},
+      {featureType:'landscape',elementType:'geometry',stylers:[{color:'#162032'}]},
+      {featureType:'poi',elementType:'geometry',stylers:[{color:'#1e2a3a'}]}
+    ]
+  });
+  dirSvc=new google.maps.DirectionsService();
+  dirRend=new google.maps.DirectionsRenderer({
+    suppressMarkers:true,
+    polylineOptions:{strokeColor:'#3B82F6',strokeWeight:5,strokeOpacity:.9}
+  });
+  dirRend.setMap(gMap);
+  log('🗺️ מפה מאותחלת');
+}
+
+/* ── FETCH ROUTE via Directions API ── */
+function fetchRoute(){
+  if(!gMap||!dirSvc||!dirRend)return;
+  if(curLat===null)return;
+  const rem=routeStations.slice(curIdx);
+  if(rem.length===0)return;
+
+  const origin={lat:curLat,lng:curLng};
+  const dest={lat:rem[rem.length-1].lat,lng:rem[rem.length-1].lng};
+  // max 8 waypoints (API free limit)
+  const wps=rem.slice(0,rem.length-1).slice(0,8)
+    .map(s=>({location:{lat:s.lat,lng:s.lng},stopover:true}));
+
+  dirSvc.route({origin,destination:dest,waypoints:wps,
+    travelMode:google.maps.TravelMode.DRIVING,region:'IL'},
+  (res,st)=>{
+    if(st==='OK'){
+      dirRend.setDirections(res);
+      const legs=res.routes[0].legs;
+      let ms=0;const now=Date.now();
+      etas=routeStations.map((s,i)=>{
+        if(i<curIdx)return{...s,passed:true,etaDate:null};
+        const li=i-curIdx;
+        if(legs[li])ms+=legs[li].duration.value*1000;
+        return{...s,passed:false,etaDate:new Date(now+ms)};
+      });
+      log('✅ ETA עודכן מ-Google');
+    } else {
+      log(`⚠️ Directions API: ${st}`);
+      fallbackETA();
+    }
+    drawStopMarkers();
+    refreshTop();
+    refreshBot();
+    refreshSched();
+  });
+}
+
+/* ── FALLBACK ETA ── */
+function fallbackETA(){
+  const spd=(curSpeed&&curSpeed>0.5)?curSpeed:8;
+  const now=Date.now();let ms=0;
+  etas=routeStations.map((s,i)=>{
+    if(i<curIdx)return{...s,passed:true,etaDate:null};
+    const prev=i===curIdx?{lat:curLat,lng:curLng}:routeStations[i-1];
+    if(prev&&curLat!==null)ms+=haversine(prev.lat,prev.lng,s.lat,s.lng)/spd*1000;
+    return{...s,passed:false,etaDate:new Date(now+ms)};
+  });
+  refreshTop();refreshBot();refreshSched();
+}
+
+/* ── BUS MARKER ── */
+function moveBus(){
+  if(!gMap||curLat===null)return;
+  const pos={lat:curLat,lng:curLng};
+  if(busM)busM.setPosition(pos);
+  else{
+    busM=new google.maps.Marker({position:pos,map:gMap,zIndex:100,
+      icon:{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+          <circle cx="22" cy="22" r="20" fill="#2563EB" stroke="white" stroke-width="3"/>
+          <text x="22" y="28" text-anchor="middle" font-size="20" fill="white">🚌</text>
+        </svg>`),
+        scaledSize:new google.maps.Size(44,44),anchor:new google.maps.Point(22,22)},
+      title:'האוטובוס'});
+  }
+}
+
+/* ── STOP MARKERS ── */
+function drawStopMarkers(){
+  if(!gMap)return;
+  stopMs.forEach(m=>m.setMap(null));stopMs=[];
+  routeStations.forEach((s,i)=>{
+    const passed=i<curIdx,cur=i===curIdx;
+    const m=new google.maps.Marker({position:{lat:s.lat,lng:s.lng},map:gMap,zIndex:cur?10:1,title:`${i+1}. ${s.name}`,
+      icon:{path:google.maps.SymbolPath.CIRCLE,
+        fillColor:passed?'#10B981':cur?'#3B82F6':'#374151',
+        fillOpacity:1,strokeColor:'#fff',strokeWeight:2,scale:cur?13:8}
+    });
+    const iw=new google.maps.InfoWindow({content:
+      `<div style="font-family:Rubik,sans-serif;direction:rtl;padding:6px;min-width:130px">
+        <b>${i+1}. ${s.name}</b>
+        <div style="color:#64748b;font-size:11px;margin-top:3px">${passed?'✅ עברנו':cur?'🔵 הבאה':'⚪ ממתין'}</div>
+        ${etas[i]&&!passed&&etas[i].etaDate?`<div style="color:#3b82f6;font-size:11px;margin-top:2px">⏰ ${fmt(etas[i].etaDate)} · ${fmtMin(etas[i].etaDate)}</div>`:''}
+      </div>`
+    });
+    m.addListener('click',()=>iw.open(gMap,m));
+    stopMs.push(m);
+  });
+}
+
+/* ── TOP BAR ── */
+function refreshTop(){
+  const next=etas.find(s=>!s.passed);
+  const top=G('map-top');
+  if(!next){top.classList.remove('show');return;}
+  top.classList.add('show');
+  G('mt-name').textContent=next.name;
+  G('mt-sub').textContent=`תחנה ${curIdx+1} מתוך ${routeStations.length}`;
+  G('mt-eta').textContent=fmtMin(next.etaDate);
+}
+
+/* ── BOTTOM STRIP ── */
+function refreshBot(){
+  const c=G('map-stops-mini'),bot=G('map-bot');
+  if(!routeStations.length){bot.classList.remove('show');return;}
+  bot.classList.add('show');
+  c.innerHTML=routeStations.map((s,i)=>{
+    const passed=i<curIdx,cur=i===curIdx;
+    return`<div class="mb-stop"><div class="mb-dot ${passed?'done':cur?'cur':'fut'}"></div>
+      <span style="font-size:10px;color:${cur?'#60a5fa':passed?'#10b981':'#8B949E'}">${s.name.split(' ')[0]}</span></div>`;
+  }).join('');
+}
+
+/* ── GEOFENCING ── */
+function checkGeo(lat,lng){
+  if(!routeStations.length)return;
+  const st=routeStations[curIdx];if(!st)return;
+  const d=haversine(lat,lng,st.lat,st.lng);
+  const ring=G('prox-ring');
+  if(d<=GEO*4&&d>GEO){ring.style.display='block';ring.textContent=`📍 ${Math.round(d)}מ' מ"${st.name}"`;}
+  else ring.style.display='none';
+  if(d<=GEO&&lastArrived!==st.id)arrive(st,lat,lng);
+}
+
+function arrive(st,lat,lng){
+  lastArrived=st.id;
+  if(navigator.vibrate)navigator.vibrate([200,100,200,100,400]);
+  G('toast-name').textContent=st.name;
+  G('toast-sub').textContent=`תחנה ${curIdx+1} מתוך ${routeStations.length} · ${new Date().toTimeString().slice(0,5)}`;
+  G('toast').classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(hideToast,6000);
+  if(etas[curIdx])etas[curIdx].passed=true;
+  curIdx++;
+  log(`🚏 הגעת: ${st.name}`);
+  const u=auth.currentUser;
+  if(u&&activeRoute)addDoc(collection(db,'trips',getTID(u.uid),'station_events'),
+    {stationId:st.id,stationName:st.name,arrivedAt:serverTimestamp(),lat,lng}).catch(()=>{});
+  drawStopMarkers();refreshBot();refreshSched();
+  if(curIdx<routeStations.length)fetchRoute();
+  else{
+    if(dirRend)dirRend.setDirections({routes:[]});
+    G('prox-ring').style.display='none';
+    G('map-top').classList.remove('show');
+    log('🏁 כל התחנות הושלמו!');
+  }
+}
+
+function hideToast(){G('toast').classList.remove('show');clearTimeout(toastTimer);}
+G('toast-x').addEventListener('click',hideToast);
+
+/* ── GPS ── */
+function startTracking(){
+  if(!navigator.geolocation){log('❌ GPS לא נתמך');return;}
+  setSt('on','משדר GPS',`קו: ${activeRoute.name}`);
+  updateCount=0;
+  // navigator.geolocation.watchPosition triggers the browser permission dialog ✓
+  watchId=navigator.geolocation.watchPosition(onPos,onGpsErr,
+    {enableHighAccuracy:true,maximumAge:4000,timeout:15000});
+}
+function stopTracking(isRemote = false) {
+  // 1. נקה מאזין מרחוק — חייב להיות ראשון למניעת לולאת אירועים
+  if (remoteStopUnsub) { remoteStopUnsub(); remoteStopUnsub = null; }
+  // 2. עצור GPS
+  if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  // 3. עדכן Firestore רק אם הנהג עצר בעצמו (הסדרן כבר כתב false)
+  if (!isRemote) {
+    const u = auth.currentUser;
+    if (u && activeRoute) setDoc(doc(db, 'bus_locations', u.uid), {active: false, updatedAt: serverTimestamp()}, {merge: true}).catch(() => {});
+  }
+  // 4. עדכן סטטוס וממשק
+  setSt('ok', 'מחובר', 'נסיעה הסתיימה');
+  log(isRemote ? '🛑 נסיעה הופסקה על ידי הסדרן' : '⏹ נסיעה הסתיימה');
+  lastArrived = null;
+  // 5. נקה מפה
+  G('prox-ring').style.display = 'none';
+  G('map-top').classList.remove('show');
+  G('map-bot').classList.remove('show');
+  G('map-overlay').classList.remove('gone');
+  if (dirRend) dirRend.setDirections({routes: []});
+  stopMs.forEach(m => m.setMap(null)); stopMs = [];
+  if (busM) { busM.setMap(null); busM = null; }
+  // 6. חיווי לנהג אם הופסק מרחוק
+  if (isRemote) {
+    // Toast ויזואלי עם צבע כתום
+    const dt = G('disp-toast');
+    if (dt) { dt.classList.add('show'); setTimeout(() => dt.classList.remove('show'), 7000); }
+    if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+    // Alert — מבטיח שהנהג יראה את ההודעה גם אם המסך נעול
+    setTimeout(() => alert('הנסיעה הופסקה על ידי הסדרן'), 300);
+  }
+}
+
+async function onPos(p){
+  const{latitude:lat,longitude:lng,accuracy,speed}=p.coords;
+  const u=auth.currentUser;
+  curLat=lat;curLng=lng;curSpeed=speed;
+  if(!u||!activeRoute)return;
+  updateCount++;
+
+  G('gps-upd').textContent=updateCount;
+  G('gps-lat').textContent=lat.toFixed(6);
+  G('gps-lng').textContent=lng.toFixed(6);
+  G('gps-acc').textContent=`±${Math.round(accuracy)}מ'`;
+  G('gps-time').textContent=new Date().toTimeString().slice(0,5);
+  G('gps-speed').textContent=speed!=null?`${Math.round(speed*3.6)} קמ"ש`:'—';
+
+  if(updateCount===1){
+    // Show overlay hiding, draw everything
+    G('map-overlay').classList.add('gone');
+    fallbackETA();
+    drawStopMarkers();
+    fetchRoute(); // upgrade to real Directions ETA
+  } else if(updateCount%12===0){
+    fetchRoute();
+  }
+
+  moveBus();
+  if(gMap)gMap.panTo({lat,lng});
+  checkGeo(lat,lng);
+
+  const ns=routeStations[curIdx];
+  if(ns)G('next-st').textContent=ns.name+(etas[curIdx]?.etaDate?` · ${fmtMin(etas[curIdx].etaDate)}`:'');
+
+  const etaObj={};
+  etas.forEach((s,i)=>{if(!s.passed&&s.etaDate)etaObj[`stop_${i}_eta`]=s.etaDate.toISOString();});
+  const data={lat,lng,accuracy,speed:speed||0,
+    routeId:activeRoute.id,routeName:activeRoute.name,
+    driverName:u.displayName||u.email,driverPhoto:u.photoURL||'',
+    active:true,updatedAt:serverTimestamp(),currentStopIndex:curIdx,
+    nextStopName:ns?.name||'',nextStopETA:etas[curIdx]?.etaDate?.toISOString()||'',
+    stopETAs:etaObj};
+  if(navigator.onLine){
+    await setDoc(doc(db,'bus_locations',u.uid),data);
+    await addDoc(collection(db,'trips',getTID(u.uid),'breadcrumbs'),
+      {lat,lng,accuracy,ts:serverTimestamp(),routeId:activeRoute.id});
+  } else offlineQ.push({uid:u.uid,data});
+}
+function onGpsErr(e){
+  const msgs={1:'יש לאשר גישה למיקום בדפדפן',2:'מיקום לא זמין כרגע',3:'GPS timeout – מנסה שוב'};
+  log(`⚠️ GPS: ${msgs[e.code]||e.message}`);
+}
+
+/* ── SCHEDULE UI ── */
+function refreshSched(){
+  if(!activeRoute){G('no-sched').style.display='';G('yes-sched').style.display='none';return;}
+  G('no-sched').style.display='none';G('yes-sched').style.display='flex';
+  G('sc-done').textContent=curIdx;
+  G('sc-rem').textContent=routeStations.length-curIdx;
+  G('sc-total').textContent=routeStations.length;
+  const next=etas.find(s=>!s.passed);
+  if(next){G('nsb-name').textContent=next.name;G('nsb-eta').textContent=fmtMin(next.etaDate);G('nsb-sub').textContent=next.etaDate?`הגעה: ${fmt(next.etaDate)}`:'מחשב...';}
+  const src=etas.length?etas:routeStations.map(s=>({...s,passed:false,etaDate:null}));
+  G('tl').innerHTML=src.map((s,i)=>{
+    const passed=s.passed,cur=!s.passed&&i===curIdx;
+    const dc=passed?'done':cur?'cur':'fut';
+    const eta=passed?'עברנו':s.etaDate?`${fmt(s.etaDate)} · ${fmtMin(s.etaDate)}`:'—';
+    return`<div class="tl-row">
+      <div class="tl-col"><div class="tl-dot ${dc}">${passed?'✓':i+1}</div><div class="tl-line ${passed?'done':'pend'}"></div></div>
+      <div class="tl-info">
+        <div class="tl-name">${s.name}</div>
+        <div class="tl-meta">${s.address||''} · ${eta}</div>
+        <span class="tl-badge ${dc}">${passed?'✓ עברנו':cur?'⬤ הבאה':(i+1)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── PAGE NAV ── */
+function navTo(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  G(id).classList.add('show');
+  G('bn-home').classList.toggle('act',id==='pg-home');
+  G('bn-map').classList.toggle('act',id==='pg-map');
+  G('bn-sched').classList.toggle('act',id==='pg-sched');
+  if(id==='pg-map'){
+    window._onGmReady(()=>{
+      initMap();
+      if(gMap)google.maps.event.trigger(gMap,'resize');
+      if(activeRoute&&curLat!==null){
+        G('map-overlay').classList.add('gone');
+        moveBus();refreshTop();refreshBot();
+        gMap.panTo({lat:curLat,lng:curLng});
+        fetchRoute();
+      }
+    });
+  }
+  if(id==='pg-sched')refreshSched();
+}
+G('bn-home').addEventListener('click',()=>navTo('pg-home'));
+G('bn-map').addEventListener('click',()=>navTo('pg-map'));
+G('bn-sched').addEventListener('click',()=>navTo('pg-sched'));
+
+/* ── HELPERS ── */
+function G(id){return document.getElementById(id);}
+function haversine(la1,ln1,la2,ln2){
+  const R=6371000,dL=(la2-la1)*Math.PI/180,dN=(ln2-ln1)*Math.PI/180,
+    a=Math.sin(dL/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dN/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function fmt(d){if(!d)return'—';return d.toTimeString().slice(0,5);}
+function fmtMin(d){if(!d)return'—';const m=Math.max(0,Math.round((d-Date.now())/60000));return m===0?'עכשיו':m+'ד\'';}
+function getTID(uid){return`${uid}_${new Date().toISOString().slice(0,10)}`;}
+function log(msg){
+  const el=G('log'),e=document.createElement('div');e.className='le';
+  e.innerHTML=`<span class="lt">${new Date().toTimeString().slice(0,5)}</span><span>${msg}</span>`;
+  el.insertBefore(e,el.firstChild);if(el.children.length>60)el.lastChild.remove();
+}
+function setSt(cls,text,sub=''){
+  const p=G('spill');p.className=cls||'';G('spill-txt').textContent=text;
+  const ic=G('conn-ic'),lbl=G('conn-lbl'),sb=G('conn-sub');
+  if(lbl)lbl.textContent=text;if(sb&&sub)sb.textContent=sub;
+  if(ic){ic.textContent=cls==='on'?'📡':cls==='ok'?'✅':cls==='err'?'❌':'⏳';
+    ic.style.background=cls==='on'?'rgba(59,130,246,.15)':cls==='ok'?'rgba(16,185,129,.15)':'rgba(239,68,68,.15)';}
+}
+
+/* ── FIREBASE AUTH ── */
+window.addEventListener('offline',()=>{G('offline-banner').style.display='block';log('⚠️ אין אינטרנט');});
+window.addEventListener('online',async()=>{G('offline-banner').style.display='none';log('✅ חיבור חזר');
+  while(offlineQ.length){const i=offlineQ.shift();try{await setDoc(doc(db,'bus_locations',i.uid),i.data);}catch{}}
+});
+
+async function applyPersistence(){
+  const remember=G('l-remember')?.checked!==false;
+  await setPersistence(auth,remember?browserLocalPersistence:browserSessionPersistence);
+}
+
+async function checkDriverRole(user){
+  // בדיקת תפקיד — נהג/driver מורשים להיכנס (גם dispatcher יכול)
+  try{
+    const snap=await getDoc(doc(db,'users',user.uid));
+    if(!snap.exists())return true; // משתמש חדש — מאפשרים
+    const role=snap.data().role;
+    return role==='driver'||role==='dispatcher'||!role; // כל תפקיד חוץ מ-? מותר
+  }catch{return true;}
+}
+
+function showErr(m){const e=G('err-msg');e.textContent=m;e.style.display='block';}
+function hideErr(){G('err-msg').style.display='none';}
+
+G('btn-google').addEventListener('click',async()=>{
+  hideErr();
+  try{
+    await applyPersistence();
+    await signInWithPopup(auth,gp);
+  }catch(e){
+    if(e.code!=='auth/popup-closed-by-user')showErr(e.message);
+  }
+});
+
+G('btn-email').addEventListener('click',async()=>{
+  hideErr();
+  const em=G('em').value.trim(),pw=G('pw').value;
+  if(!em||!pw){showErr('נא למלא אימייל וסיסמה');return;}
+  try{
+    await applyPersistence();
+    await signInWithEmailAndPassword(auth,em,pw);
+  }catch(e){
+    showErr(e.code==='auth/invalid-credential'?'אימייל או סיסמה שגויים':e.message);
+  }
+});
+
+// Enter על שדה הסיסמה מפעיל כניסה
+G('pw').addEventListener('keydown',e=>{if(e.key==='Enter')G('btn-email').click();});
+
+G('btn-lo').addEventListener('click',async()=>{
+  stopTracking(false);
+  await signOut(auth);
+});
+
+onAuthStateChanged(auth,async(user)=>{
+  if(user){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+    G('pg-home').classList.add('show');
+    G('bnav').classList.add('show');
+    G('bn-home').classList.add('act');G('bn-map').classList.remove('act');G('bn-sched').classList.remove('act');
+    const nm=user.displayName||user.email||'נהג';
+    G('d-name').textContent=nm;G('d-email').textContent=user.email||'';
+    if(user.photoURL)G('d-ava').innerHTML=`<img src="${user.photoURL}">`;
+    else G('d-ava').textContent=nm.slice(0,2).toUpperCase();
+    await setDoc(doc(db,'users',user.uid),{name:nm,email:user.email,photoURL:user.photoURL||'',role:'driver',lastSeen:serverTimestamp()},{merge:true});
+    setSt('ok','מחובר','ממתין לבחירת קו');
+    await loadRoutes();
+    log('✅ כניסה: '+nm);
+    // Pre-init map in background (no GPS yet)
+    window._onGmReady(initMap);
+  } else {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+    G('pg-login').classList.add('show');
+    G('bnav').classList.remove('show');
+    setSt('','לא מחובר');
+  }
+});
+
+/* ── REMOTE STOP LISTENER ── */
+function startRemoteListener(uid) {
+  if (!uid) return;
+  // בטל מאזין קודם
+  if (remoteStopUnsub) { remoteStopUnsub(); remoteStopUnsub = null; }
+
+  let isFirst = true; // דגל להתעלמות מהקריאה הראשונה (ערך ישן ב-DB)
+
+  remoteStopUnsub = onSnapshot(doc(db, 'bus_locations', uid), (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+
+    // התעלם מה-snapshot הראשון — הוא מחזיר את המצב הנוכחי ב-DB
+    if (isFirst) {
+      isFirst = false;
+      console.log('[RemoteListener] snapshot ראשון נדחה, active =', data.active);
+      return;
+    }
+
+    console.log('[RemoteListener] שינוי התקבל, active =', data.active, ', activeRoute =', !!activeRoute);
+
+    // סיום מרחוק: הסדרן שינה ל-active:false בזמן שהנהג בנסיעה
+    if (data.active === false && activeRoute !== null) {
+      console.log('🛑 סיום נסיעה מרחוק התקבל מהסדרן');
+      log('🛑 הסדרן סיים את הנסיעה מרחוק');
+
+      stopTracking(true); // true = סיום מרחוק
+
+      // אפס state ו-UI
+      activeRoute = null; curIdx = 0; etas = []; routeStations = [];
+      G('sec-track').classList.add('hidden');
+      G('sec-route').classList.remove('hidden');
+      document.querySelectorAll('.ri').forEach(el => el.classList.remove('sel'));
+      selRouteId = null; G('btn-start').disabled = true;
+      G('route-search').value = '';
+      refreshSched();
+      navTo('pg-home');
+    }
+  }, (err) => {
+    console.error('[RemoteListener] שגיאה:', err.message);
+    log('⚠️ שגיאת מאזין מרחוק: ' + err.message);
+  });
+}
+
+/* ── LOAD ROUTES ── */
+let _allRoutes=[]; // שמור את כל הקווים לחיפוש
+
+async function loadRoutes(){
+  const snap=await getDocs(collection(db,'routes'));
+  _allRoutes=[];
+  snap.forEach(d=>_allRoutes.push({id:d.id,...d.data()}));
+  renderRouteList(_allRoutes);
+}
+
+function renderRouteList(routes){
+  const list=G('route-list');list.innerHTML='';
+  selRouteId=null;G('btn-start').disabled=true;
+  if(!routes.length){list.innerHTML='<div style="color:var(--t2);font-size:13px;text-align:center;padding:16px">אין קווים תואמים</div>';return;}
+  routes.forEach(d=>{
+    const div=document.createElement('div');div.className='ri';
+    const st=d.stations||[];
+    div.innerHTML=`<div><div class="ri-name">🛣️ ${d.name}</div><div class="ri-sub">🚏 ${st.length} תחנות</div></div><span style="font-size:18px;color:var(--t3)">›</span>`;
+    div.addEventListener('click',()=>{
+      document.querySelectorAll('.ri').forEach(el=>el.classList.remove('sel'));
+      div.classList.add('sel');selRouteId=d.id;G('btn-start').disabled=false;
+    });
+    list.appendChild(div);
+  });
+}
+
+// חיפוש קו בזמן אמת
+G('route-search').addEventListener('input',function(){
+  const q=this.value.trim().toLowerCase();
+  if(!q){renderRouteList(_allRoutes);return;}
+  renderRouteList(_allRoutes.filter(r=>(r.name||'').toLowerCase().includes(q)));
+});
+
+G('btn-start').addEventListener('click',async()=>{
+  if(!selRouteId)return;
+  // וודא שהמשתמש מאומת לפני כל פעולה
+  const u=auth.currentUser;
+  if(!u){log('❌ נדרשת התחברות');return;}
+
+  const rd=await getDoc(doc(db,'routes',selRouteId));
+  activeRoute={id:selRouteId,...rd.data()};
+  routeStations=activeRoute.stations||[];
+  curIdx=0;lastArrived=null;updateCount=0;
+  etas=routeStations.map(s=>({...s,passed:false,etaDate:null}));
+
+  G('sec-route').classList.add('hidden');
+  G('sec-track').classList.remove('hidden');
+  G('act-route').textContent=activeRoute.name;
+
+  // 1. כתוב active:true ל-Firestore לפני הפעלת המאזין — מונע false-positive
+  await setDoc(doc(db,'bus_locations',u.uid),{active:true,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
+
+  // 2. הפעל GPS
+  startTracking();
+
+  // 3. הפעל מאזין לסיום מרחוק — אחרי כתיבת active:true
+  startRemoteListener(u.uid);
+
+  // 4. עבור למסך מפה
+  navTo('pg-map');
+  log(`🚌 התחלת נסיעה – ${activeRoute.name}`);
+});
+
+G('btn-stop').addEventListener('click',()=>{
+  stopTracking(false); // false = הנהג עצר בעצמו
+  activeRoute=null;curIdx=0;etas=[];routeStations=[];
+  G('sec-track').classList.add('hidden');
+  G('sec-route').classList.remove('hidden');
+  document.querySelectorAll('.ri').forEach(el=>el.classList.remove('sel'));
+  selRouteId=null;G('btn-start').disabled=true;
+  G('route-search').value='';
+  renderRouteList(_allRoutes);
+  refreshSched();
+});
+</script>
+</body>
+</html>
