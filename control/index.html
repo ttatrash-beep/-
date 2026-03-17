@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta name="robots" content="noindex, nofollow">
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
   <title>FleetPro – מרכז שליטה</title>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
@@ -212,9 +211,294 @@
     #bus-loc-etas{padding:14px 18px;max-height:180px;overflow-y:auto}
     .empty-st{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:36px;color:var(--t3);text-align:center}
     .empty-st .ei{font-size:34px}
+
+    /* MOBILE SUMMARY BAR — מוסתר בדסקטופ, מוצג במובייל */
+    #mob-summary-bar{
+      display:none; /* הוצג ע"י media query */
+      align-items:center;justify-content:center;
+      gap:0;background:linear-gradient(135deg,#1e3a8a,#2563eb);
+      flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.1)
+    }
+    .mob-sum-item{
+      flex:1;display:flex;flex-direction:column;align-items:center;
+      padding:10px 6px;gap:2px;
+      border-left:1px solid rgba(255,255,255,.12)
+    }
+    .mob-sum-item:last-child{border-left:none}
+    .mob-sum-val{font-size:22px;font-weight:800;color:#fff;line-height:1}
+    .mob-sum-lbl{font-size:9px;font-weight:600;color:#93c5fd;text-transform:uppercase;letter-spacing:.06em;text-align:center}
+    .mob-sum-dot{width:7px;height:7px;border-radius:50%;background:#10b981;animation:lp 1.5s infinite;margin-bottom:2px}
+
+    /* USER CARD (mobile view) */
+    .u-card{background:var(--sur);border:1px solid var(--bor);border-radius:14px;
+      padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--sh)}
+    .u-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .u-card-name{font-size:17px;font-weight:700;color:var(--t1)}
+    .u-card-operator{font-size:13px;color:var(--t2);margin-top:2px}
+    .u-card-meta{display:flex;flex-direction:column;gap:5px}
+    .u-card-row{font-size:13px;color:var(--t2);display:flex;align-items:center;gap:6px}
+    .u-card-actions{display:flex;gap:10px}
+    .u-card-actions .btn{flex:1;min-height:50px;font-size:14px;border-radius:12px}
     ::-webkit-scrollbar{width:4px;height:4px}
     ::-webkit-scrollbar-thumb{background:var(--bor);border-radius:2px}
     .hidden{display:none!important}
+
+    /* ══════════════════════════════════════
+       MOBILE BOTTOM TAB BAR (≤768px)
+    ══════════════════════════════════════ */
+    #mob-tabs{display:none;position:fixed;bottom:0;left:0;right:0;height:60px;
+      background:var(--sur);border-top:1px solid var(--bor);z-index:60;
+      box-shadow:0 -2px 12px rgba(0,0,0,.08)}
+    .mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;gap:2px;cursor:pointer;opacity:.4;
+      font-size:9px;font-weight:700;color:var(--t2);transition:opacity .15s;
+      touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .mob-tab.act{opacity:1;color:var(--blue)}
+    .mob-tab-ic{font-size:22px}
+
+    /* ══ MEDIA QUERY ≤768px ══ */
+    @media(max-width:768px){
+      /* Viewport units for full-height layout */
+      #shell{height:100dvh}
+      #body{height:calc(100dvh - var(--hh));position:relative}
+      #main{position:relative;overflow:hidden}
+
+      /* הסדר sidebar — מוסתר במובייל */
+      #sidebar{display:none}
+
+      /* Topbar — מקוצר במובייל */
+      #top-search-wrap{display:none}
+      #topbar{padding:0 12px;gap:8px}
+      .tb-stat{padding:0 5px}
+      .tb-val{font-size:16px}
+      .tb-lbl{font-size:9px}
+      .vd{margin:0 1px}
+      .live-pill{padding:4px 7px;font-size:10px}
+      #clock{display:none}
+      .u-nm{max-width:70px;font-size:12px}
+
+      /* Bottom tabs במובייל */
+      #mob-tabs{display:flex}
+      /* דפים — padding תחתון לטאב בר, אבל לא המפה */
+      .page{padding-bottom:68px!important}
+
+      /* ══ דף מפה ══ */
+      /* כשלא פעיל — מוסתר לחלוטין, ללא גובה, ללא overflow */
+      #pg-map{
+        display:none!important;
+        padding:0!important;
+        margin:0!important
+      }
+
+      /* רק כשפעיל — position:absolute מכסה את כל #main */
+      #pg-map.active{
+        display:flex!important;
+        flex-direction:column!important;
+        position:absolute!important;
+        inset:0!important;
+        z-index:10!important;
+        padding:0!important;
+        overflow:hidden!important
+      }
+
+      /* map-wrap רק בתוך דף מפה פעיל */
+      #pg-map.active #map-wrap{
+        width:100vw!important;
+        height:calc(100dvh - var(--hh) - 60px)!important;
+        flex:1!important;
+        min-height:0!important;
+        position:relative!important;
+        overflow:hidden!important
+      }
+
+      /* gmap ממלא את map-wrap */
+      #pg-map.active #gmap{
+        position:absolute!important;
+        inset:0!important;
+        width:100%!important;
+        height:100%!important
+      }
+
+      /* הסתר map-ctrl ו-eta-panel כשהמפה לא פעילה */
+      #pg-map:not(.active) #eta-panel,
+      #pg-map:not(.active) .map-ctrl,
+      #pg-map:not(.active) #map-wrap{
+        display:none!important;
+        visibility:hidden!important;
+        height:0!important
+      }
+
+      /* כל ילד ישיר של pg-map פעיל שהוא לא map-wrap — מוסתר */
+      #pg-map.active > *:not(#map-wrap){display:none!important}
+
+      /* ══ דפים אחרים — גובה מלא, גלילה תקינה, לא absolute ══ */
+      .page.active:not(#pg-map){
+        display:flex!important;
+        flex-direction:column!important;
+        position:static!important;
+        height:calc(100dvh - var(--hh) - 60px)!important;
+        max-height:calc(100dvh - var(--hh) - 60px)!important;
+        overflow-y:auto!important;
+        overflow-x:hidden!important
+      }
+
+      /* ETA panel — מוצג בתחתית המפה, רק כשדף המפה פעיל */
+      #pg-map.active #eta-panel{
+        position:absolute!important;
+        bottom:0!important;
+        top:auto!important;
+        left:0!important;
+        right:0!important;
+        width:100vw!important;
+        max-height:50px!important;
+        flex-direction:row!important;
+        overflow-x:auto!important;
+        overflow-y:hidden!important;
+        padding:4px 8px!important;
+        gap:6px!important;
+        background:rgba(15,23,42,.82)!important;
+        backdrop-filter:blur(8px)!important;
+        border-top:1px solid rgba(255,255,255,.1)!important;
+        z-index:20!important
+      }
+      /* כרטיסי ETA — שורה אחת צרה */
+      #pg-map.active .eta-card{
+        min-width:155px!important;max-width:155px!important;
+        flex-shrink:0!important;padding:4px 9px!important;
+        border-radius:8px!important;display:flex!important;
+        align-items:center!important;gap:6px!important
+      }
+      #pg-map.active .eta-card .eta-next,
+      #pg-map.active .eta-card .eta-stops,
+      #pg-map.active .eta-card .eta-end-btn{display:none!important}
+      #pg-map.active .eta-bus-hdr{margin-bottom:0!important}
+      #pg-map.active .eta-bus-nm{font-size:11px!important}
+      #pg-map.active .eta-bus-drv{font-size:10px!important;margin-top:0!important}
+
+      /* ══ דף קווים פעילים (#pg-routes) ══ */
+
+      /* pg-routes.active — גובה מלא + גלילה */
+      #pg-routes.active{
+        display:flex!important;
+        flex-direction:column!important;
+        height:calc(100dvh - var(--hh) - 60px)!important;
+        overflow-y:auto!important;
+        overflow-x:hidden!important;
+        position:static!important
+      }
+
+      /* שורת סיכום — מוצגת תמיד בדף הקווים */
+      #mob-summary-bar{display:flex!important}
+
+      /* KPI ריבועים גדולים — מוסתרים (שורת הסיכום מחליפה) */
+      #pg-routes .kpi-row{display:none!important}
+
+      /* גריד קווים פעילים — עמודה אחת, גלילה */
+      #active-routes-grid{
+        display:grid!important;
+        grid-template-columns:1fr!important;
+        padding:0 12px 12px!important;
+        gap:12px!important
+      }
+
+      /* sec-hdr בדף הקווים — עמודה, חיפוש רוחב מלא */
+      #pg-routes .sec-hdr{
+        display:flex!important;
+        flex-direction:column!important;
+        gap:10px!important;
+        align-items:stretch!important;
+        flex-shrink:0!important
+      }
+      #pg-routes .sec-hdr input{width:100%!important}
+
+      /* כרטיסי ניהול קווים (#rt-grid בדף ניהול) — עמודה אחת */
+      #rt-grid{
+        display:grid!important;
+        grid-template-columns:1fr!important;
+        padding:0 12px 12px!important
+      }
+
+      /* ── כפתורי מפה: עמודה ימין תחתון — לא מסתירים נתוני אוטובוסים ── */
+      .map-ctrl{
+        top:auto!important;
+        bottom:70px;        /* מעל טאב בר */
+        right:10px;
+        flex-direction:column;
+        gap:10px;
+        align-items:flex-end
+      }
+      .mc-btn{
+        padding:10px 14px;font-size:13px;
+        min-height:44px;min-width:130px;
+        touch-action:manipulation;
+        white-space:nowrap
+      }
+
+      /* טבלאות — הסתר עמודות פחות חשובות */
+      .col-hide-mob{display:none!important}
+
+      /* Section headers — עמודה במובייל, כפתור רוחב מלא */
+      .sec-hdr{
+        padding:14px 16px 10px;
+        flex-direction:column;
+        align-items:stretch;
+        gap:10px
+      }
+      .sec-hdr .btn,
+      .sec-hdr button,
+      .sec-hdr input{width:100%!important;max-width:100%!important}
+
+      /* rc-ac (כפתורי קו) — עמודה */
+      .rc-ac{flex-direction:column;gap:8px}
+      .rc-ac .btn,.rc-ac button{width:100%;min-height:46px;font-size:14px}
+
+      /* m-ft (modal footer) — עמודה, כפתורים מלאי רוחב */
+      .m-ft{flex-direction:column-reverse;gap:8px}
+      .m-ft .btn{width:100%!important;min-height:48px;font-size:15px}
+
+      /* m-2col — עמודה אחת במובייל */
+      .m-2col{grid-template-columns:1fr!important}
+
+      /* ETA end button */
+      .eta-end-btn{min-height:40px;font-size:13px}
+
+      /* Modals — מסך מלא בנייד */
+      .mb{width:100vw!important;max-width:100vw!important;
+        border-radius:20px 20px 0 0!important;
+        position:fixed!important;bottom:0!important;left:0!important;right:0!important;
+        max-height:90dvh!important;margin:0!important}
+      .mo.open{align-items:flex-end}
+      #route-map-container,#bus-loc-map{height:55dvh!important}
+      .modal-map-hdr{padding:12px 14px}
+
+      /* InfoWindow Google Maps — גדול יותר בנייד */
+      .gm-style-iw{font-size:15px!important;max-width:calc(100vw - 40px)!important}
+      .gm-style-iw-c{padding:14px!important}
+
+      /* טבלת משתמשים — הסתר עמודות עם col-hide-mob */
+      .stops-page-wrap{padding:0 12px 12px}
+
+      /* Users — מצב כרטיסים במובייל */
+      #u-table-wrap{display:none!important}
+      #u-cards{display:flex!important}
+
+      /* כפתורים — touch friendly */
+      .btn,.bsm{min-height:44px;touch-action:manipulation}
+      .btn.bsm{min-height:40px}
+    }
+
+    /* ══ MEDIA QUERY ≤480px (טלפונים קטנים) ══ */
+    @media(max-width:480px){
+      :root{--hh:52px}
+      .tb-logo-tx{display:none}
+      .tb-stat .tb-lbl{display:none}
+      .tb-val{font-size:15px}
+      .kpi-row{grid-template-columns:repeat(2,1fr);gap:8px}
+      .kpi{padding:12px 10px}
+      .kpi-vl{font-size:22px}
+      #eta-panel{top:6px}
+      .eta-card{min-width:200px}
+    }
   </style>
 </head>
 <body>
@@ -297,6 +581,26 @@
 
       <!-- ACTIVE ROUTES -->
       <div class="page" id="pg-routes">
+        <!-- שורת סיכום — מוצגת רק במובייל במקום הריבועים -->
+        <div id="mob-summary-bar">
+          <div class="mob-sum-item">
+            <div class="mob-sum-dot"></div>
+            <div class="mob-sum-val" id="ms-active">0</div>
+            <div class="mob-sum-lbl">פעילים</div>
+          </div>
+          <div class="mob-sum-item">
+            <div class="mob-sum-val" id="ms-routes">0</div>
+            <div class="mob-sum-lbl">קווים</div>
+          </div>
+          <div class="mob-sum-item">
+            <div class="mob-sum-val" id="ms-late" style="color:#fbbf24">0</div>
+            <div class="mob-sum-lbl">מאחרים</div>
+          </div>
+          <div class="mob-sum-item">
+            <div class="mob-sum-val" id="ms-alerts" style="color:#f87171">0</div>
+            <div class="mob-sum-lbl">התראות</div>
+          </div>
+        </div>
         <div class="sec-hdr">
           <div><div class="sec-ti">🛣️ קווים פעילים</div><div class="sec-su">לחץ על קו לצפייה במסלול או במיקום</div></div>
           <input id="route-search-inp" placeholder="🔍 חפש קו או נהג..." style="background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--t1);outline:none;width:230px"/>
@@ -358,12 +662,23 @@
           <div><div class="sec-ti">👥 ניהול משתמשים</div><div class="sec-su">נהגים, סדרנים ומפעילים</div></div>
           <button class="btn bp bsm" onclick="openUM()">+ הוסף משתמש</button>
         </div>
-        <div class="tbl-wrap">
+        <!-- Desktop: table -->
+        <div class="tbl-wrap" id="u-table-wrap">
           <table>
-            <thead><tr><th>שם נהג</th><th>שם מפעיל</th><th>אימייל</th><th>תפקיד</th><th>סיסמה</th><th>נראה לאחרונה</th><th>פעולות</th></tr></thead>
+            <thead><tr>
+              <th>שם נהג</th>
+              <th class="col-hide-mob">שם מפעיל</th>
+              <th class="col-hide-mob">אימייל</th>
+              <th>תפקיד</th>
+              <th class="col-hide-mob">סיסמה</th>
+              <th class="col-hide-mob">נראה לאחרונה</th>
+              <th>פעולות</th>
+            </tr></thead>
             <tbody id="u-tbody"></tbody>
           </table>
         </div>
+        <!-- Mobile: cards (populated by JS) -->
+        <div id="u-cards" style="display:none;flex-direction:column;gap:12px;padding:0 14px 80px"></div>
       </div>
 
       <!-- REPORTS -->
@@ -769,7 +1084,13 @@ window.showPage=function(id,el){
   G(id)?.classList.add('active');
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('act'));
   if(el)el.classList.add('act');
-  if(id==='pg-map'&&gMap)setTimeout(()=>google.maps.event.trigger(gMap,'resize'),60);
+  if(id==='pg-map'&&gMap){
+    // רAF מבטיח ש-CSS (position:absolute) הוחל לפני חישוב גדלי המפה
+    requestAnimationFrame(()=>{
+      google.maps.event.trigger(gMap,'resize');
+      setTimeout(()=>google.maps.event.trigger(gMap,'resize'),200);
+    });
+  }
   if(id==='pg-stops')loadSavedStops();
 };
 window.toggleSB=()=>G('sidebar').classList.toggle('col');
@@ -949,6 +1270,16 @@ function updActiveRoutes(buses,rc){
   Object.keys(rCache).forEach(rid=>{if(!byRoute[rid])byRoute[rid]=[];});
   let entries=Object.entries(byRoute);
   if(q)entries=entries.filter(([rid,bs])=>(rCache[rid]?.name||'').toLowerCase().includes(q)||bs.some(b=>(b.driverName||'').toLowerCase().includes(q)));
+
+  // עדכן שורת סיכום מובייל
+  const activeCount=buses.length;
+  const routeCount=new Set(buses.map(b=>b.routeId)).size;
+  const lateCount=buses.filter(b=>{const u=b.updatedAt?.toDate?.();return u&&Date.now()-u.getTime()>60000;}).length;
+  const alertCount=lateCount+Object.values(rc).filter(c=>c>1).length;
+  ['ms-active','ms-routes','ms-late','ms-alerts'].forEach((id,i)=>{
+    const el=G(id);if(el)el.textContent=[activeCount,routeCount,lateCount,alertCount][i];
+  });
+
   if(!entries.length){grid.innerHTML='<div class="empty-st" style="grid-column:1/-1"><div class="ei">🚌</div><p>אין תוצאות</p></div>';return;}
   grid.innerHTML=entries.map(([rid,bs])=>{
     const route=rCache[rid],routeName=route?.name||rid;
@@ -1055,16 +1386,29 @@ window.delRoute=async function(id){if(!confirm('למחוק?'))return;await delet
 
 /* ── USERS ── */
 async function loadUsers(){
-  if(!auth.currentUser)return; // וודא מחובר לפני קריאה ל-Firestore
+  if(!auth.currentUser)return;
   const snap=await getDocs(collection(db,'users'));
-  const tb=G('u-tbody');if(!tb)return;tb.innerHTML='';
+  const tb=G('u-tbody'),cards=G('u-cards');
+  if(!tb)return;
+  tb.innerHTML='';
+  cards.innerHTML='';
+
+  if(!snap.size){
+    tb.innerHTML='<tr><td colspan="7"><div class="empty-st"><p>אין משתמשים</p></div></td></tr>';
+    cards.innerHTML='<div class="empty-st"><div class="ei">👥</div><p>אין משתמשים</p></div>';
+    return;
+  }
+
   snap.forEach(d=>{
     const u=d.data();
     const roleBg=u.role==='dispatcher'?'rgba(59,130,246,.1)':u.role==='admin'?'rgba(139,92,246,.1)':'rgba(16,185,129,.1)';
     const roleClr=u.role==='dispatcher'?'#2563eb':u.role==='admin'?'#7c3aed':'#059669';
     const roleLabel=u.role==='dispatcher'?'🎛 סדרן':u.role==='admin'?'👑 מנהל':'🚌 נהג';
+    const name=u.driverName||u.name||'—';
+
+    // ── Desktop table row ──
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td style="padding:11px 13px;font-size:13px;font-weight:600">${u.driverName||u.name||'—'}</td>
+    tr.innerHTML=`<td style="padding:11px 13px;font-size:13px;font-weight:600">${name}</td>
       <td style="padding:11px 13px;font-size:13px;color:var(--t2)">${u.operatorName||'—'}</td>
       <td style="padding:11px 13px;font-size:13px;color:var(--t2)">${u.email||'—'}</td>
       <td style="padding:11px 13px"><span style="background:${roleBg};color:${roleClr};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${roleLabel}</span></td>
@@ -1075,8 +1419,29 @@ async function loadUsers(){
         <button class="btn br bsm" onclick="delUser('${d.id}')">🗑</button>
       </td>`;
     tb.appendChild(tr);
+
+    // ── Mobile card ──
+    const card=document.createElement('div');
+    card.className='u-card';
+    card.innerHTML=`
+      <div class="u-card-top">
+        <div>
+          <div class="u-card-name">${name}</div>
+          ${u.operatorName?`<div class="u-card-operator">🏢 ${u.operatorName}</div>`:''}
+        </div>
+        <span style="background:${roleBg};color:${roleClr};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700">${roleLabel}</span>
+      </div>
+      <div class="u-card-meta">
+        ${u.email?`<div class="u-card-row">✉️ <span>${u.email}</span></div>`:''}
+        ${u.lastSeen?.toDate?.()?`<div class="u-card-row">🕐 <span>${u.lastSeen.toDate().toLocaleString('he-IL')}</span></div>`:''}
+        <div class="u-card-row">${u.hasPassword?'🔑 סיסמה הוגדרה':'⚠️ ללא סיסמה'}</div>
+      </div>
+      <div class="u-card-actions">
+        <button class="btn bs" onclick="openEditUser('${d.id}')">✏️ ערוך</button>
+        <button class="btn br" onclick="delUser('${d.id}')">🗑 מחק</button>
+      </div>`;
+    cards.appendChild(card);
   });
-  if(!snap.size)tb.innerHTML='<tr><td colspan="7"><div class="empty-st"><p>אין משתמשים</p></div></td></tr>';
 }
 
 window.openUM=()=>{
@@ -1189,6 +1554,47 @@ window.dlReport=async function(type){
   const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'})),download:`${title}_${new Date().toISOString().slice(0,10)}.csv`});
   a.click();
 };
+
+/* ══ MOBILE BOTTOM TABS — logic ══ */
+(function(){
+  // Tab definitions: id of page to show, sidebar .ni selector
+  const TABS=[
+    {id:'pg-map',   ic:'🗺️', lb:'מפה'},
+    {id:'pg-routes',ic:'🛣️', lb:'קווים'},
+    {id:'pg-alerts',ic:'⚠️', lb:'התראות'},
+    {id:'pg-users', ic:'👥', lb:'נהגים'},
+  ];
+
+  // Build tabs HTML
+  const bar=document.getElementById('mob-tabs');
+  TABS.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='mob-tab'+(i===0?' act':'');
+    d.dataset.page=t.id;
+    d.innerHTML=`<div class="mob-tab-ic">${t.ic}</div><span>${t.lb}</span>`;
+    d.addEventListener('click',()=>{
+      // find matching sidebar .ni by page
+      const ni=document.querySelector(`.ni[onclick*="${t.id}"]`)||document.querySelector('.ni');
+      showPage(t.id,ni);
+      document.querySelectorAll('.mob-tab').forEach(x=>x.classList.remove('act'));
+      d.classList.add('act');
+    });
+    bar.appendChild(d);
+  });
+
+  // Sync mob tabs when showPage is called from sidebar
+  const origShow=window.showPage;
+  window.showPage=function(id,el){
+    origShow(id,el);
+    document.querySelectorAll('.mob-tab').forEach(t=>{
+      t.classList.toggle('act',t.dataset.page===id);
+    });
+  };
+})();
 </script>
+
+<!-- MOBILE BOTTOM TAB BAR -->
+<div id="mob-tabs"></div>
+
 </body>
 </html>
