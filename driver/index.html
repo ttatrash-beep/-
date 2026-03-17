@@ -449,6 +449,7 @@ let etas=[];
 let toastTimer=null;
 let remoteStopUnsub=null; // מאזין לסיום נסיעה מרחוק
 let noSleep=null;         // NoSleep instance למניעת נעילת מסך
+let gpsRetryTimer=null;   // טיימר להתאוששות GPS אוטומטית
 const GEO=10; // metres
 
 /* ── GOOGLE MAPS ── */
@@ -671,18 +672,19 @@ G('btn-wakelock').addEventListener('click',()=>{
 /* ── GPS ── */
 function startTracking(){
   if(!navigator.geolocation){log('❌ GPS לא נתמך');return;}
+  gpsRetryCount=0; // איפוס מונה בתחילת נסיעה חדשה
   setSt('on','משדר GPS',`קו: ${activeRoute.name}`);
   updateCount=0;
   watchId=navigator.geolocation.watchPosition(onPos,onGpsErr,
-    {enableHighAccuracy:true,maximumAge:4000,timeout:15000});
-  // הפעל Wake Lock אוטומטית — מסך יישאר דולק לאורך כל הנסיעה
+    {enableHighAccuracy:true,maximumAge:5000,timeout:20000});
   enableWakeLock();
 }
 function stopTracking(isRemote = false) {
   // 1. נקה מאזין מרחוק — חייב להיות ראשון למניעת לולאת אירועים
   if (remoteStopUnsub) { remoteStopUnsub(); remoteStopUnsub = null; }
-  // 2. עצור GPS + כבה Wake Lock
+  // 2. עצור GPS + כבה Wake Lock + בטל טיימר התאוששות
   if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  clearTimeout(gpsRetryTimer); gpsRetryTimer = null; gpsRetryCount = 0;
   disableWakeLock();
   // 3. עדכן Firestore רק אם הנהג עצר בעצמו (הסדרן כבר כתב false)
   if (!isRemote) {
@@ -717,6 +719,13 @@ async function onPos(p){
   const u=auth.currentUser;
   curLat=lat;curLng=lng;curSpeed=speed;
   if(!u||!activeRoute)return;
+  // GPS הצליח — אפס מונה ניסיונות וטיימר התאוששות
+  if(gpsRetryCount>0){
+    gpsRetryCount=0;
+    clearTimeout(gpsRetryTimer);gpsRetryTimer=null;
+    log('✅ GPS: חיבור שוחזר');
+    setSt('on','משדר GPS',`קו: ${activeRoute.name}`);
+  }
   updateCount++;
 
   G('gps-upd').textContent=updateCount;
@@ -757,9 +766,38 @@ async function onPos(p){
       {lat,lng,accuracy,ts:serverTimestamp(),routeId:activeRoute.id});
   } else offlineQ.push({uid:u.uid,data});
 }
+let gpsRetryCount=0; // סופר ניסיונות GPS — לא גלובלי בין נסיעות
+
 function onGpsErr(e){
-  const msgs={1:'יש לאשר גישה למיקום בדפדפן',2:'מיקום לא זמין כרגע',3:'GPS timeout – מנסה שוב'};
-  log(`⚠️ GPS: ${msgs[e.code]||e.message}`);
+  // קוד 1 = הרשאה נדחתה — לא ניתן להתאושש, חייב אישור ידני
+  if(e.code===1){
+    log('❌ GPS: גישה נדחתה – יש לאשר מיקום בדפדפן');
+    setSt('err','שגיאת הרשאה','פתח הגדרות ואשר מיקום');
+    return; // אין טעם לנסות שוב — הרשאה חסומה
+  }
+
+  gpsRetryCount++;
+  const msgs={2:'אות GPS חלש',3:'GPS לא הגיב'};
+  const reason=msgs[e.code]||e.message;
+  // Backoff: ניסיון 1–3 = 5ש', 4–6 = 10ש', 7+ = 20ש'
+  const delay=gpsRetryCount<=3?5000:gpsRetryCount<=6?10000:20000;
+  const delaySec=delay/1000;
+
+  log(`⚠️ GPS (ניסיון ${gpsRetryCount}): ${reason} — מנסה שוב בעוד ${delaySec}ש'`);
+  setSt('err',`GPS: מנסה שוב... (${gpsRetryCount})`,reason);
+
+  // נקה watch נוכחי לפני restart
+  if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;}
+
+  // אל תפסיק נסיעה — restart אוטומטי עם backoff
+  clearTimeout(gpsRetryTimer);
+  gpsRetryTimer=setTimeout(()=>{
+    if(!activeRoute){gpsRetryCount=0;return;} // נסיעה בוטלה בינתיים
+    log(`🔄 GPS: מפעיל מחדש... (ניסיון ${gpsRetryCount})`);
+    watchId=navigator.geolocation.watchPosition(onPos,onGpsErr,
+      {enableHighAccuracy:true,maximumAge:5000,timeout:20000});
+    setSt('on','משדר GPS',`קו: ${activeRoute.name}`);
+  },delay);
 }
 
 /* ── SCHEDULE UI ── */
