@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <title>FleetPro – ממשק נהג</title>
@@ -227,11 +227,43 @@
     #wakelock-ic{font-size:16px}
     #wakelock-lbl{font-size:12px;font-weight:600;color:var(--t2)}
     #wakelock-status{font-size:10px;color:var(--t3);margin-top:1px}
-    #btn-wakelock{border:none;border-radius:20px;padding:5px 12px;font-family:var(--font);
-      font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+    /* Wake Lock כפתור — גדול לאגודל */
+    #btn-wakelock{border:none;border-radius:10px;padding:0 18px;height:44px;
+      font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;
+      touch-action:manipulation}
     #btn-wakelock.off{background:var(--sur3);color:var(--t2)}
     #btn-wakelock.on{background:rgba(16,185,129,.15);color:var(--green);
       border:1px solid rgba(16,185,129,.3)}
+
+    /* ══ MOBILE FIRST — כפתורי נסיעה גדולים ══ */
+    /* כפתור "סיים נסיעה" — 60px, בולט, נגיש לאגודל */
+    #btn-stop{min-height:60px!important;font-size:17px!important;letter-spacing:.02em;
+      border-radius:14px!important;touch-action:manipulation}
+    /* כפתור "התחל נסיעה" */
+    #btn-start{min-height:56px!important;font-size:16px!important;
+      border-radius:14px!important;touch-action:manipulation}
+    /* כל הכפתורים — מניעת double-tap zoom */
+    .btn{touch-action:manipulation}
+    .btn-g-wh{touch-action:manipulation}
+
+    /* תחנות בלוח הזמנים — ריווח גדול, קל ללחיצה */
+    .tl-row{padding:14px 0!important;min-height:60px}
+    .tl-dot{width:34px!important;height:34px!important;font-size:13px!important}
+    .tl-name{font-size:15px!important;font-weight:700}
+    .tl-meta{font-size:12px!important}
+    #tl{min-height:50vh} /* תופסת חצי מסך לפחות */
+
+    /* כפתור מרכוז מפה — אגודל תחתון */
+    #btn-center-map{position:absolute;bottom:80px;left:14px;z-index:400;
+      width:52px;height:52px;border-radius:50%;background:#fff;
+      border:1px solid var(--bor);box-shadow:var(--sh2);
+      display:none;align-items:center;justify-content:center;
+      font-size:22px;cursor:pointer;touch-action:manipulation;transition:all .18s}
+    #btn-center-map.show{display:flex}
+    #btn-center-map:active{transform:scale(.92)}
+
+    /* מניעת double-tap zoom בכל האלמנטים האינטראקטיביים */
+    button,a,[onclick]{touch-action:manipulation}
   </style>
 </head>
 <body>
@@ -373,6 +405,8 @@
         <div style="font-size:12px;color:var(--t2)">בחר קו ולחץ "התחל נסיעה"</div>
       </div>
       <div id="prox-ring"></div>
+      <!-- כפתור מרכוז — בפינה שמאל למטה, נגיש לאגודל -->
+      <button id="btn-center-map" title="מרכז מיקום שלי">📍</button>
     </div>
     <div id="map-bot"><div id="map-stops-mini"></div></div>
   </div>
@@ -843,9 +877,21 @@ function navTo(id){
         fetchRoute();
       }
     });
+    // הצג כפתור מרכוז רק במצב נסיעה פעילה
+    G('btn-center-map').classList.toggle('show',!!activeRoute);
+  } else {
+    G('btn-center-map').classList.remove('show');
   }
   if(id==='pg-sched')refreshSched();
 }
+
+// כפתור מרכוז מיקום — pan למיקום הנוכחי
+G('btn-center-map').addEventListener('click',()=>{
+  if(gMap&&curLat!==null){
+    gMap.panTo({lat:curLat,lng:curLng});
+    gMap.setZoom(16);
+  }
+});
 G('bn-home').addEventListener('click',()=>navTo('pg-home'));
 G('bn-map').addEventListener('click',()=>navTo('pg-map'));
 G('bn-sched').addEventListener('click',()=>navTo('pg-sched'));
