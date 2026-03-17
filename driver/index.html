@@ -7,6 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <title>FleetPro – ממשק נהג</title>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -218,6 +219,19 @@
     #route-search-wrap{display:flex;align-items:center;gap:7px;background:var(--sur2);border:1px solid var(--bor);border-radius:9px;padding:8px 11px;margin-bottom:10px}
     #route-search-wrap input{border:none;background:none;font-family:var(--font);font-size:13px;color:var(--text);outline:none;width:100%}
     #route-search-wrap input::placeholder{color:var(--t3)}
+    /* WAKE LOCK */
+    #wakelock-bar{display:flex;align-items:center;justify-content:space-between;
+      background:var(--sur2);border:1px solid var(--bor);border-radius:9px;
+      padding:9px 13px;margin-bottom:2px}
+    #wakelock-bar .wl-info{display:flex;align-items:center;gap:8px}
+    #wakelock-ic{font-size:16px}
+    #wakelock-lbl{font-size:12px;font-weight:600;color:var(--t2)}
+    #wakelock-status{font-size:10px;color:var(--t3);margin-top:1px}
+    #btn-wakelock{border:none;border-radius:20px;padding:5px 12px;font-family:var(--font);
+      font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+    #btn-wakelock.off{background:var(--sur3);color:var(--t2)}
+    #btn-wakelock.on{background:rgba(16,185,129,.15);color:var(--green);
+      border:1px solid rgba(16,185,129,.3)}
   </style>
 </head>
 <body>
@@ -310,6 +324,17 @@
     <div class="card hidden" id="sec-track">
       <div class="ct">שידור GPS פעיל</div>
       <div class="gps-bar"><div class="gps-dot"></div><span>קו <b id="act-route">—</b> · <span id="gps-upd">0</span> עדכונים</span></div>
+      <!-- Wake Lock indicator -->
+      <div id="wakelock-bar">
+        <div class="wl-info">
+          <span id="wakelock-ic">🔆</span>
+          <div>
+            <div id="wakelock-lbl">שמור מסך דולק</div>
+            <div id="wakelock-status">לא פעיל</div>
+          </div>
+        </div>
+        <button id="btn-wakelock" class="off">הפעל</button>
+      </div>
       <div class="gg">
         <div class="gc hi"><div class="gc-l">קו רוחב</div><div class="gc-v" id="gps-lat">—</div></div>
         <div class="gc hi"><div class="gc-l">קו אורך</div><div class="gc-v" id="gps-lng">—</div></div>
@@ -423,6 +448,7 @@ let curLat=null,curLng=null,curSpeed=null;
 let etas=[];
 let toastTimer=null;
 let remoteStopUnsub=null; // מאזין לסיום נסיעה מרחוק
+let noSleep=null;         // NoSleep instance למניעת נעילת מסך
 const GEO=10; // metres
 
 /* ── GOOGLE MAPS ── */
@@ -604,20 +630,60 @@ function arrive(st,lat,lng){
 function hideToast(){G('toast').classList.remove('show');clearTimeout(toastTimer);}
 G('toast-x').addEventListener('click',hideToast);
 
+/* ── WAKE LOCK ── */
+function initNoSleep(){
+  if(noSleep)return;
+  if(typeof NoSleep==='undefined'){log('⚠️ NoSleep לא נטען');return;}
+  noSleep=new NoSleep();
+}
+
+function enableWakeLock(){
+  initNoSleep();
+  if(!noSleep)return;
+  noSleep.enable();
+  G('btn-wakelock').textContent='כבה';
+  G('btn-wakelock').className='on';
+  G('wakelock-ic').textContent='☀️';
+  G('wakelock-lbl').textContent='מסך דולק';
+  G('wakelock-status').textContent='פעיל – מסך לא יכבה';
+  log('☀️ Wake Lock הופעל');
+}
+
+function disableWakeLock(){
+  if(!noSleep)return;
+  noSleep.disable();
+  G('btn-wakelock').textContent='הפעל';
+  G('btn-wakelock').className='off';
+  G('wakelock-ic').textContent='🔆';
+  G('wakelock-lbl').textContent='שמור מסך דולק';
+  G('wakelock-status').textContent='לא פעיל';
+  log('🔆 Wake Lock כובה');
+}
+
+// כפתור ידני — הנהג יכול להפעיל/לכבות בעצמו
+G('btn-wakelock').addEventListener('click',()=>{
+  initNoSleep();
+  if(!noSleep)return;
+  if(noSleep._wakeLock||noSleep.enabled){disableWakeLock();}
+  else{enableWakeLock();}
+});
+
 /* ── GPS ── */
 function startTracking(){
   if(!navigator.geolocation){log('❌ GPS לא נתמך');return;}
   setSt('on','משדר GPS',`קו: ${activeRoute.name}`);
   updateCount=0;
-  // navigator.geolocation.watchPosition triggers the browser permission dialog ✓
   watchId=navigator.geolocation.watchPosition(onPos,onGpsErr,
     {enableHighAccuracy:true,maximumAge:4000,timeout:15000});
+  // הפעל Wake Lock אוטומטית — מסך יישאר דולק לאורך כל הנסיעה
+  enableWakeLock();
 }
 function stopTracking(isRemote = false) {
   // 1. נקה מאזין מרחוק — חייב להיות ראשון למניעת לולאת אירועים
   if (remoteStopUnsub) { remoteStopUnsub(); remoteStopUnsub = null; }
-  // 2. עצור GPS
+  // 2. עצור GPS + כבה Wake Lock
   if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  disableWakeLock();
   // 3. עדכן Firestore רק אם הנהג עצר בעצמו (הסדרן כבר כתב false)
   if (!isRemote) {
     const u = auth.currentUser;
