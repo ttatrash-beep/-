@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+  <meta name="robots" content="noindex, nofollow">
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FleetPro – מרכז שליטה</title>
@@ -223,8 +224,19 @@
   <div class="lc">
     <div class="l-brand"><div class="l-brand-ic">🚌</div><div class="l-brand-tx">FleetPro</div></div>
     <div class="l-sub">מרכז שליטה – סדרנים בלבד</div>
+    <!-- Google login -->
+    <button id="btn-google" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1e293b;border:none;border-radius:11px;padding:12px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;width:100%;transition:all .18s">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      כניסה עם Google
+    </button>
+    <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.25);font-size:12px"><div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div>או<div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div></div>
     <div><label class="l-lbl">אימייל</label><input class="l-inp" type="email" id="l-em" placeholder="dispatcher@company.com"/></div>
     <div><label class="l-lbl">סיסמה</label><input class="l-inp" type="password" id="l-pw" placeholder="••••••••"/></div>
+    <!-- Remember me -->
+    <label style="display:flex;align-items:center;gap:9px;cursor:pointer;color:rgba(255,255,255,.6);font-size:13px">
+      <input type="checkbox" id="l-remember" style="width:16px;height:16px;accent-color:var(--blue);cursor:pointer" checked/>
+      זכור אותי במכשיר זה
+    </label>
     <button class="btn-em-login" id="btn-em">כניסה</button>
     <div id="l-err"></div>
     <div id="l-access-err">⛔ אין לך הרשאת סדרן. פנה למנהל המערכת.</div>
@@ -429,6 +441,34 @@
   </div>
 </div>
 
+<!-- MODAL: EDIT USER -->
+<div class="mo" id="mo-edit-u">
+  <div class="mb" onclick="event.stopPropagation()">
+    <div class="m-ti">✏️ עריכת משתמש</div>
+    <div class="m-2col">
+      <div class="ig"><label>שם הנהג / עובד</label><input type="text" id="eu-driver-name" placeholder="ישראל ישראלי"/></div>
+      <div class="ig"><label>שם מפעיל / חברה</label><input type="text" id="eu-operator-name" placeholder="חברת אגד"/></div>
+    </div>
+    <div class="ig"><label>אימייל</label><input type="email" id="eu-em" placeholder="user@company.com"/></div>
+    <div class="ig"><label>תפקיד</label>
+      <select id="eu-rl">
+        <option value="driver">🚌 נהג</option>
+        <option value="dispatcher">🎛 סדרן</option>
+      </select>
+    </div>
+    <input type="hidden" id="eu-doc-id"/>
+    <div style="background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--t2)">
+      🔑 לאיפוס סיסמה – לחץ על הכפתור למטה. המשתמש יקבל מייל עם קישור לאיפוס.
+    </div>
+    <div id="eu-msg" style="display:none;padding:8px;border-radius:8px;font-size:13px;text-align:center;margin-top:8px"></div>
+    <div class="m-ft">
+      <button class="btn bs" onclick="sendResetEmail()" style="margin-left:auto">📧 שלח איפוס סיסמה</button>
+      <button class="btn bs" onclick="G('mo-edit-u').classList.remove('open')">ביטול</button>
+      <button class="btn bp" onclick="saveEditUser()">💾 שמור שינויים</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: ROUTE MAP -->
 <div class="mo" id="mo-route-map">
   <div class="mb mb-wide" onclick="event.stopPropagation()">
@@ -463,15 +503,15 @@ window._gmReady=false;window._gmQ=[];
 window._gmCB=function(){window._gmReady=true;window._gmQ.forEach(f=>f());window._gmQ=[];};
 window._onGm=function(f){if(window._gmReady)f();else window._gmQ.push(f);};
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl_gJpoNgi_utS4BY9jvUABvPRmjYxfaY&libraries=geometry,places&language=he&region=IL&callback=_gmCB" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDl_gJpoNgi_utS4BY9jvUABvPRmjYxfaY&libraries=geometry,places&language=he&region=IL&callback=_gmCB&loading=async" async defer></script>
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getAuth,onAuthStateChanged,signOut,signInWithEmailAndPassword,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getAuth,onAuthStateChanged,signOut,signInWithEmailAndPassword,createUserWithEmailAndPassword,GoogleAuthProvider,signInWithPopup,setPersistence,browserLocalPersistence,browserSessionPersistence,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import{getFirestore,collection,doc,setDoc,addDoc,getDocs,onSnapshot,serverTimestamp,deleteDoc,updateDoc,getDoc,query,where}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const FB={apiKey:"AIzaSyCYebIWehiY8fqP54W8cuUoaoGYvqm7dtk",authDomain:"fleetpro-live-cfd2e.firebaseapp.com",projectId:"fleetpro-live-cfd2e",storageBucket:"fleetpro-live-cfd2e.firebasestorage.app",messagingSenderId:"720089208081",appId:"1:720089208081:web:642c3df765f403d89968b0"};
-const app=initializeApp(FB),auth=getAuth(app),db=getFirestore(app);
+const app=initializeApp(FB),auth=getAuth(app),db=getFirestore(app),gp=new GoogleAuthProvider();
 
 let gMap=null,rCache={},stBuf=[],editRId=null;
 let allBusData=[],busGMarkers={},routePolylines=[],showRouteLines=false;
@@ -515,27 +555,54 @@ function getStopETAs(b){
   });
 }
 
-/* ── OPEN BUS API ── */
-async function fetchStopFromAPI(code){
-  const PROXY='https://corsproxy.io/?url=';
-  const url=`https://open-bus-stride-api.cloud.railway.app/gtfs_stops/list?code=${code}`;
+/* ══════════════════════════════════════
+   STOP SEARCH — Cloud Function (ללא CORS)
+   URL: getBusLocation?value={code}
+   תשובה: טקסט בפורמט "read=שם התחנה"
+══════════════════════════════════════ */
+const CF_URL='https://europe-west3-fleetpro-live-cfd2e.cloudfunctions.net/getBusLocation';
+
+async function fetchStopFromCloudFn(code){
+  console.log(`[StopSearch] מתחיל חיפוש לתחנה ${code}`);
+  console.log(`[StopSearch] פונה לענן: ${CF_URL}?value=${code}`);
   try{
-    const r=await fetch(PROXY+encodeURIComponent(url));
-    const d=await r.json();
-    if(!d||!d.length)return null;
-    const s=d[0];
-    return{stopId:String(code),name:s.name||s.stop_name||`תחנה ${code}`,lat:parseFloat(s.lat||s.stop_lat||0),lng:parseFloat(s.lon||s.stop_lon||s.lng||0)};
-  }catch{
-    try{const r=await fetch(url);const d=await r.json();if(!d||!d.length)return null;const s=d[0];return{stopId:String(code),name:s.name||s.stop_name||`תחנה ${code}`,lat:parseFloat(s.lat||s.stop_lat||0),lng:parseFloat(s.lon||s.stop_lon||s.lng||0)};}
-    catch{return null;}
+    const res=await fetch(`${CF_URL}?value=${code}`);
+    if(!res.ok){console.error(`[StopSearch] שגיאת HTTP: ${res.status}`);return null;}
+    const text=await res.text();
+    console.log(`[StopSearch] תשובה התקבלה:`,text);
+    // parse "read=שם התחנה"
+    if(!text||!text.includes('read='))return null;
+    const name=text.split('read=')[1]?.trim();
+    if(!name)return null;
+    return{stopId:String(code),name,lat:null,lng:null};
+  }catch(e){
+    console.error(`[StopSearch] שגיאת תקשורת:`,e.message);
+    return null;
   }
 }
+
 async function resolveStop(code){
-  const snap=await getDocs(query(collection(db,'bus_stops'),where('stopId','==',String(code))));
-  if(!snap.empty)return{...snap.docs[0].data(),_fromCache:true};
-  const stop=await fetchStopFromAPI(code);
+  if(!code)return null;
+  console.log(`[resolveStop] בודק Firestore לתחנה ${code}`);
+  // בדיקה ב-Firestore קודם
+  try{
+    const snap=await getDocs(query(collection(db,'bus_stops'),where('stopId','==',String(code))));
+    if(!snap.empty){
+      console.log(`[resolveStop] נמצא במטמון Firestore`);
+      return{...snap.docs[0].data(),_fromCache:true};
+    }
+  }catch(e){console.warn('[resolveStop] שגיאת Firestore:',e.message);}
+  // פנייה ל-Cloud Function
+  const stop=await fetchStopFromCloudFn(code);
   if(!stop)return null;
-  await setDoc(doc(db,'bus_stops',String(code)),{...stop,createdAt:serverTimestamp()});
+  // שמירה ב-Firestore (ללא lat/lng אם אין)
+  try{
+    const toSave={stopId:stop.stopId,name:stop.name,createdAt:serverTimestamp()};
+    if(stop.lat)toSave.lat=stop.lat;
+    if(stop.lng)toSave.lng=stop.lng;
+    await setDoc(doc(db,'bus_stops',String(code)),toSave);
+    console.log(`[resolveStop] נשמר ב-Firestore: ${stop.name}`);
+  }catch(e){console.warn('[resolveStop] שגיאת שמירה:',e.message);}
   return stop;
 }
 
@@ -545,11 +612,16 @@ window.searchByCode=async function(){
   if(!code)return;
   res.className='stop-found-msg';res.style.display='block';res.textContent='🔍 מחפש...';
   const stop=await resolveStop(code);
-  if(!stop){res.className='stop-found-msg err';res.style.display='block';res.textContent='❌ תחנה לא נמצאה';return;}
+  if(!stop){res.className='stop-found-msg err';res.style.display='block';res.textContent='❌ תחנה לא נמצאה – בדוק את מספר התחנה';return;}
   res.className='stop-found-msg ok';res.style.display='block';
-  res.textContent=`✅ ${stop.name} (${stop.lat?.toFixed(5)}, ${stop.lng?.toFixed(5)}) ${stop._fromCache?'– מהמטמון':'– נשמר'}`;
+  res.textContent=`✅ ${stop.name} ${stop._fromCache?'(מהמטמון)':'(נשמר)'}`;
   loadSavedStops();
 };
+
+// חיפוש אוטומטי כשמוקלדות 5 ספרות
+document.getElementById('stop-code-inp')?.addEventListener('input',function(){
+  if(this.value.trim().length===5)window.searchByCode();
+});
 
 window.addStopFromAddress=function(){
   const inp=G('stop-address-inp'),res=G('stop-addr-result');
@@ -584,10 +656,15 @@ window.addStopByCode=async function(){
   res.className='stop-found-msg';res.style.display='block';res.textContent='🔍 מחפש...';
   const stop=await resolveStop(code);
   if(!stop){res.className='stop-found-msg err';res.style.display='block';res.textContent='❌ לא נמצא';return;}
-  stBuf.push({id:'s'+Date.now(),stopId:stop.stopId,name:stop.name,lat:stop.lat,lng:stop.lng,address:''});
+  stBuf.push({id:'s'+Date.now(),stopId:stop.stopId,name:stop.name,lat:stop.lat||0,lng:stop.lng||0,address:''});
   renderSL();res.className='stop-found-msg ok';res.style.display='block';res.textContent=`✅ ${stop.name}`;
   G('rm-stop-code').value='';setTimeout(()=>res.style.display='none',2500);
 };
+
+// חיפוש אוטומטי ב-modal לפי 5 ספרות
+document.getElementById('rm-stop-code')?.addEventListener('input',function(){
+  if(this.value.trim().length===5)window.addStopByCode();
+});
 
 /* ── DIRECTIONS API – draw on roads ── */
 function drawRoadRoute(stations,mapInst,rend){
@@ -698,28 +775,65 @@ window.showPage=function(id,el){
 window.toggleSB=()=>G('sidebar').classList.toggle('col');
 window.doLogout=async()=>await signOut(auth);
 
+function showLoginErr(msg){const el=G('l-err');el.style.display='block';el.textContent=msg;}
+function hideLoginErrs(){G('l-err').style.display='none';G('l-access-err').style.display='none';}
+
+async function applyPersistence(){
+  const remember=G('l-remember')?.checked!==false;
+  await setPersistence(auth,remember?browserLocalPersistence:browserSessionPersistence);
+}
+
+async function verifyDispatcher(user){
+  if(!user)return false;
+  try{
+    const snap=await getDoc(doc(db,'users',user.uid));
+    return snap.exists()&&snap.data().role==='dispatcher';
+  }catch(e){
+    console.warn('[Auth] שגיאת בדיקת תפקיד:',e.message);
+    return false;
+  }
+}
+
+// כניסה עם גוגל
+G('btn-google').onclick=async()=>{
+  hideLoginErrs();
+  try{
+    await applyPersistence();
+    const cred=await signInWithPopup(auth,gp);
+    const ok=await verifyDispatcher(cred.user);
+    if(!ok){await signOut(auth);G('l-access-err').style.display='block';}
+  }catch(e){
+    if(e.code!=='auth/popup-closed-by-user')showLoginErr(e.message);
+  }
+};
+
+// כניסה עם אימייל+סיסמה
 G('btn-em').onclick=async()=>{
   const em=G('l-em').value.trim(),pw=G('l-pw').value;
-  const err=G('l-err'),aerr=G('l-access-err');
-  err.style.display='none';aerr.style.display='none';
+  hideLoginErrs();
+  if(!em||!pw){showLoginErr('נא למלא אימייל וסיסמה');return;}
   try{
+    await applyPersistence();
     const cred=await signInWithEmailAndPassword(auth,em,pw);
-    const snap=await getDoc(doc(db,'users',cred.user.uid));
-    const role=snap.exists()?snap.data().role:'driver';
-    if(role!=='dispatcher'){await signOut(auth);aerr.style.display='block';}
-  }catch(e){err.style.display='block';err.textContent=e.code==='auth/invalid-credential'?'אימייל או סיסמה שגויים':e.message;}
+    const ok=await verifyDispatcher(cred.user);
+    if(!ok){await signOut(auth);G('l-access-err').style.display='block';}
+  }catch(e){showLoginErr(e.code==='auth/invalid-credential'?'אימייל או סיסמה שגויים':e.message);}
 };
+
+// Enter key on password field
+G('l-pw').addEventListener('keydown',e=>{if(e.key==='Enter')G('btn-em').click();});
 
 onAuthStateChanged(auth,async(user)=>{
   if(user){
-    const snap=await getDoc(doc(db,'users',user.uid));
-    const role=snap.exists()?snap.data().role:'driver';
-    if(role!=='dispatcher'){await signOut(auth);G('l-access-err').style.display='block';return;}
+    const ok=await verifyDispatcher(user);
+    if(!ok){await signOut(auth);G('l-access-err').style.display='block';return;}
     G('login-overlay').style.display='none';
-    const nm=snap.data()?.driverName||user.displayName||user.email||'סדרן';
+    let snap;
+    try{snap=await getDoc(doc(db,'users',user.uid));}catch{}
+    const nm=snap?.data()?.driverName||user.displayName||user.email||'סדרן';
     G('t-nm').textContent=nm;G('sb-nm').textContent=nm;
-    G('t-ava').textContent=nm.slice(0,2).toUpperCase();G('sb-av').textContent=nm.slice(0,2).toUpperCase();
-    await setDoc(doc(db,'users',user.uid),{lastSeen:serverTimestamp()},{merge:true});
+    const ini=nm.slice(0,2).toUpperCase();G('t-ava').textContent=ini;G('sb-av').textContent=ini;
+    try{await setDoc(doc(db,'users',user.uid),{lastSeen:serverTimestamp()},{merge:true});}catch{}
     window._onGm(()=>{initMap();startRT();loadRoutes();loadUsers();});
     if(window._gmReady){initMap();startRT();loadRoutes();loadUsers();}
   } else {
@@ -745,6 +859,7 @@ function startRT(){
 
 /* ── IVR ETA SYNC ── */
 function writeETAs(buses){
+  if(!auth.currentUser)return; // guard
   clearTimeout(etaWriteTimer);
   etaWriteTimer=setTimeout(async()=>{
     for(const b of buses){
@@ -883,6 +998,7 @@ function updAlerts(buses,rc){
 
 /* ── MANAGE ROUTES ── */
 async function loadRoutes(){
+  if(!auth.currentUser)return; // guard: וודא מחובר
   const snap=await getDocs(collection(db,'routes'));
   rCache={};const g=G('rt-grid');if(g)g.innerHTML='';
   snap.forEach(d=>{
@@ -939,22 +1055,30 @@ window.delRoute=async function(id){if(!confirm('למחוק?'))return;await delet
 
 /* ── USERS ── */
 async function loadUsers(){
+  if(!auth.currentUser)return; // וודא מחובר לפני קריאה ל-Firestore
   const snap=await getDocs(collection(db,'users'));
   const tb=G('u-tbody');if(!tb)return;tb.innerHTML='';
   snap.forEach(d=>{
     const u=d.data();
+    const roleBg=u.role==='dispatcher'?'rgba(59,130,246,.1)':u.role==='admin'?'rgba(139,92,246,.1)':'rgba(16,185,129,.1)';
+    const roleClr=u.role==='dispatcher'?'#2563eb':u.role==='admin'?'#7c3aed':'#059669';
+    const roleLabel=u.role==='dispatcher'?'🎛 סדרן':u.role==='admin'?'👑 מנהל':'🚌 נהג';
     const tr=document.createElement('tr');
     tr.innerHTML=`<td style="padding:11px 13px;font-size:13px;font-weight:600">${u.driverName||u.name||'—'}</td>
       <td style="padding:11px 13px;font-size:13px;color:var(--t2)">${u.operatorName||'—'}</td>
       <td style="padding:11px 13px;font-size:13px;color:var(--t2)">${u.email||'—'}</td>
-      <td style="padding:11px 13px"><span style="background:${u.role==='dispatcher'?'rgba(59,130,246,.1)':'rgba(16,185,129,.1)'};color:${u.role==='dispatcher'?'#2563eb':'#059669'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${u.role==='dispatcher'?'🎛 סדרן':'🚌 נהג'}</span></td>
+      <td style="padding:11px 13px"><span style="background:${roleBg};color:${roleClr};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${roleLabel}</span></td>
       <td style="padding:11px 13px;font-size:12px;color:var(--t3)">${u.hasPassword?'✓ הוגדרה':'—'}</td>
       <td style="padding:11px 13px;font-size:12px;color:var(--t2)">${u.lastSeen?.toDate?.()?.toLocaleString('he-IL')||'—'}</td>
-      <td style="padding:11px 13px"><select class="r-sel" onchange="changeRole('${d.id}',this.value)"><option value="driver" ${u.role==='driver'?'selected':''}>נהג</option><option value="dispatcher" ${u.role==='dispatcher'?'selected':''}>סדרן</option></select> <button class="btn br bsm" onclick="delUser('${d.id}')" style="margin-right:4px">🗑</button></td>`;
+      <td style="padding:11px 13px;display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn bs bsm" onclick="openEditUser('${d.id}')">✏️ ערוך</button>
+        <button class="btn br bsm" onclick="delUser('${d.id}')">🗑</button>
+      </td>`;
     tb.appendChild(tr);
   });
   if(!snap.size)tb.innerHTML='<tr><td colspan="7"><div class="empty-st"><p>אין משתמשים</p></div></td></tr>';
 }
+
 window.openUM=()=>{
   G('mo-u-ti').textContent='הוסף משתמש';
   ['u-driver-name','u-operator-name','u-em','u-pw'].forEach(id=>{const el=G(id);if(el)el.value='';});
@@ -973,19 +1097,85 @@ window.saveUser=async function(){
   try{
     let uid=null;
     if(pw){
-      try{const cred=await createUserWithEmailAndPassword(auth,email,pw);uid=cred.user.uid;}
-      catch(e){if(e.code!=='auth/email-already-in-use')throw e;msg.textContent='⚠️ אימייל קיים – מעדכן נתונים';}
+      try{
+        const cred=await createUserWithEmailAndPassword(auth,email,pw);
+        uid=cred.user.uid;
+        console.log('[SaveUser] משתמש Auth נוצר:',uid);
+      }catch(e){
+        if(e.code!=='auth/email-already-in-use')throw e;
+        console.warn('[SaveUser] אימייל קיים ב-Auth – שומר ל-Firestore בלבד');
+        msg.textContent='⚠️ אימייל קיים – מעדכן נתונים';
+      }
     }
     const userData={driverName,operatorName,email,role,hasPassword:!!pw,createdAt:serverTimestamp()};
     if(uid)await setDoc(doc(db,'users',uid),userData);
     else await addDoc(collection(db,'users'),userData);
-    msg.style.background='rgba(16,185,129,.1)';msg.style.color='#059669';msg.textContent=`✅ ${driverName||email} נשמר`;
-    setTimeout(()=>window.closeUM(),1400);loadUsers();
-  }catch(e){msg.style.background='rgba(239,68,68,.1)';msg.style.color='var(--red)';msg.textContent='❌ '+e.message;}
+    msg.style.background='rgba(16,185,129,.1)';msg.style.color='#059669';msg.textContent=`✅ ${driverName||email} נשמר בהצלחה`;
+    setTimeout(()=>window.closeUM(),1400);
+    loadUsers();
+  }catch(e){
+    console.error('[SaveUser] שגיאה:',e);
+    msg.style.background='rgba(239,68,68,.1)';msg.style.color='var(--red)';msg.textContent='❌ '+e.message;
+  }
   G('btn-save-user').disabled=false;
 };
-window.changeRole=async(id,r)=>await updateDoc(doc(db,'users',id),{role:r});
-window.delUser=async function(id){if(!confirm('למחוק?'))return;await deleteDoc(doc(db,'users',id));loadUsers();};
+
+// ── EDIT USER MODAL ──
+let _editUserId=null;
+window.openEditUser=async function(docId){
+  if(!auth.currentUser)return;
+  _editUserId=docId;
+  const snap=await getDoc(doc(db,'users',docId));
+  if(!snap.exists())return;
+  const u=snap.data();
+  G('eu-driver-name').value=u.driverName||u.name||'';
+  G('eu-operator-name').value=u.operatorName||'';
+  G('eu-em').value=u.email||'';
+  G('eu-rl').value=u.role||'driver';
+  G('eu-doc-id').value=docId;
+  G('eu-msg').style.display='none';
+  G('mo-edit-u').classList.add('open');
+};
+
+window.saveEditUser=async function(){
+  if(!_editUserId||!auth.currentUser)return;
+  const driverName=G('eu-driver-name').value.trim();
+  const operatorName=G('eu-operator-name').value.trim();
+  const email=G('eu-em').value.trim();
+  const role=G('eu-rl').value;
+  const msg=G('eu-msg');
+  msg.style.display='block';msg.style.background='rgba(59,130,246,.1)';msg.style.color='#2563eb';msg.textContent='שומר...';
+  try{
+    await updateDoc(doc(db,'users',_editUserId),{driverName,operatorName,email,role,updatedAt:serverTimestamp()});
+    msg.style.background='rgba(16,185,129,.1)';msg.style.color='#059669';msg.textContent='✅ השינויים נשמרו';
+    setTimeout(()=>G('mo-edit-u').classList.remove('open'),1200);
+    loadUsers();
+  }catch(e){
+    console.error('[EditUser] שגיאה:',e);
+    msg.style.background='rgba(239,68,68,.1)';msg.style.color='var(--red)';msg.textContent='❌ '+e.message;
+  }
+};
+
+window.sendResetEmail=async function(){
+  const email=G('eu-em').value.trim();
+  const msg=G('eu-msg');
+  if(!email){alert('נא למלא כתובת אימייל');return;}
+  msg.style.display='block';msg.style.background='rgba(59,130,246,.1)';msg.style.color='#2563eb';msg.textContent='שולח...';
+  try{
+    await sendPasswordResetEmail(auth,email);
+    msg.style.background='rgba(16,185,129,.1)';msg.style.color='#059669';
+    msg.textContent=`✅ מייל איפוס נשלח ל-${email}`;
+  }catch(e){
+    msg.style.background='rgba(239,68,68,.1)';msg.style.color='var(--red)';msg.textContent='❌ '+e.message;
+  }
+};
+
+window.changeRole=async(id,r)=>{if(!auth.currentUser)return;await updateDoc(doc(db,'users',id),{role:r});};
+window.delUser=async function(id){
+  if(!auth.currentUser)return;
+  if(!confirm('למחוק משתמש זה?'))return;
+  await deleteDoc(doc(db,'users',id));loadUsers();
+};
 
 /* ── REPORTS ── */
 window.dlReport=async function(type){
