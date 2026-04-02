@@ -499,6 +499,76 @@
       #eta-panel{top:6px}
       .eta-card{min-width:200px}
     }
+
+/* ══ DRIVER HEALTH DASHBOARD ══ */
+.drv-health {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;
+}
+.dh-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; padding: 3px 8px;
+  border-radius: 20px; white-space: nowrap;
+}
+.dh-chip.bat-ok  { background: rgba(16,185,129,.12); color: #059669; }
+.dh-chip.bat-low { background: rgba(239,68,68,.12);  color: var(--red); }
+.dh-chip.bat-med { background: rgba(245,158,11,.12); color: #d97706; }
+.dh-chip.gps-ok  { background: rgba(59,130,246,.12); color: #2563eb; }
+.dh-chip.gps-bad { background: rgba(239,68,68,.12);  color: var(--red); }
+.dh-chip.spd     { background: rgba(148,163,184,.1); color: var(--t2); }
+.dh-chip.inc     { background: rgba(239,68,68,.15);  color: var(--red); animation: flash 1s infinite; }
+@keyframes flash { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ══ INCIDENT MARKER BLINK ══ */
+.bus-incident-marker { animation: mapFlash 0.8s infinite alternate; }
+@keyframes mapFlash { from{opacity:1} to{opacity:0.3} }
+
+/* ══ DEMAND MAP CIRCLES ══ */
+.demand-circle { pointer-events: none; }
+
+/* ══ TOAST ALERTS ══ */
+#toast-container {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+  z-index: 9000; display: flex; flex-direction: column; gap: 8px;
+  max-width: 420px; width: calc(100% - 32px); pointer-events: none;
+}
+.sys-toast {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border-radius: 13px; padding: 12px 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18); border-left: 4px solid var(--red);
+  animation: slideIn .35s cubic-bezier(.22,1,.36,1);
+  pointer-events: auto; cursor: pointer;
+}
+.sys-toast.warn  { border-left-color: var(--orange); }
+.sys-toast.info  { border-left-color: var(--blue); }
+.sys-toast.ok    { border-left-color: var(--green); }
+@keyframes slideIn { from{transform:translateX(120%);opacity:0} to{transform:none;opacity:1} }
+.sys-toast-ic   { font-size: 20px; flex-shrink: 0; }
+.sys-toast-body { flex: 1; }
+.sys-toast-title{ font-size: 13px; font-weight: 700; }
+.sys-toast-sub  { font-size: 11px; color: var(--t2); margin-top: 2px; }
+.sys-toast-x    { background: none; border: none; color: var(--t3); cursor: pointer; font-size: 16px; }
+
+/* ══ AT RISK SIDEBAR ══ */
+#risk-sidebar {
+  position: fixed; left: 0; top: var(--hh); bottom: 0;
+  width: 240px; background: #fff; border-right: 1px solid var(--bor);
+  box-shadow: 2px 0 12px rgba(0,0,0,.08); z-index: 500;
+  transform: translateX(-100%); transition: transform .28s ease;
+  display: flex; flex-direction: column;
+}
+#risk-sidebar.open { transform: translateX(0); }
+#risk-sb-hdr {
+  padding: 14px 16px; border-bottom: 1px solid var(--bor);
+  display: flex; align-items: center; justify-content: space-between;
+}
+#risk-sb-list { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.risk-item {
+  background: var(--sur2); border: 1px solid var(--bor); border-radius: 10px;
+  padding: 10px; cursor: pointer; transition: all .15s;
+}
+.risk-item:hover { border-color: var(--orange); }
+.risk-item-nm { font-size: 13px; font-weight: 700; }
+.risk-item-reason { font-size: 11px; color: var(--orange); margin-top: 3px; }
   </style>
 </head>
 <body>
@@ -538,6 +608,12 @@
     </div>
     <div id="search-dropdown"></div>
     <div class="tb-sp"></div>
+    <button id="btn-risk-sidebar" onclick="toggleRiskSidebar()"
+      style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(245,158,11,.1);
+      color:#d97706;border:1px solid rgba(245,158,11,.3);border-radius:10px;font-family:var(--font);
+      font-size:12px;font-weight:700;cursor:pointer">
+      ⚠️ סיכון <span id="risk-count">0</span>
+    </button>
     <div class="tb-stat"><div class="tb-val" id="st-a">0</div><div class="tb-lbl">אוטובוסים</div></div>
     <div class="vd"></div>
     <div class="tb-stat"><div class="tb-val r" id="st-al">0</div><div class="tb-lbl">התראות</div></div>
@@ -572,6 +648,7 @@
         <div id="map-wrap">
           <div id="gmap"></div>
           <div class="map-ctrl">
+            <button class="mc-btn" id="btn-demand" onclick="toggleDemandMap()">📊 ביקוש</button>
             <button class="mc-btn" onclick="fitAll()">🚌 כל האוטובוסים</button>
             <button class="mc-btn" id="btn-rt" onclick="toggleRoutes()">🛣️ הצג מסלולים</button>
           </div>
@@ -694,6 +771,18 @@
 
     </div>
   </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- AT RISK SIDEBAR -->
+<div id="risk-sidebar">
+  <div id="risk-sb-hdr">
+    <span style="font-size:14px;font-weight:700;color:var(--red)">⚠️ נהגים בסיכון</span>
+    <button onclick="closeRiskSidebar()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--t3)">✕</button>
+  </div>
+  <div id="risk-sb-list"><div style="color:var(--t3);font-size:13px;text-align:center;padding:20px">אין נהגים בסיכון</div></div>
 </div>
 
 <!-- MODAL: ROUTE EDIT -->
@@ -823,10 +912,28 @@ window._onGm=function(f){if(window._gmReady)f();else window._gmQ.push(f);};
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,onAuthStateChanged,signOut,signInWithEmailAndPassword,createUserWithEmailAndPassword,GoogleAuthProvider,signInWithPopup,setPersistence,browserLocalPersistence,browserSessionPersistence,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getFirestore,collection,doc,setDoc,addDoc,getDocs,onSnapshot,serverTimestamp,deleteDoc,updateDoc,getDoc,query,where}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,doc,setDoc,addDoc,getDocs,onSnapshot,serverTimestamp,deleteDoc,updateDoc,getDoc,query,where, enableIndexedDbPersistence}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const FB={apiKey:"AIzaSyCYebIWehiY8fqP54W8cuUoaoGYvqm7dtk",authDomain:"fleetpro-live-cfd2e.firebaseapp.com",projectId:"fleetpro-live-cfd2e",storageBucket:"fleetpro-live-cfd2e.firebasestorage.app",messagingSenderId:"720089208081",appId:"1:720089208081:web:642c3df765f403d89968b0"};
 const app=initializeApp(FB),auth=getAuth(app),db=getFirestore(app),gp=new GoogleAuthProvider();
+
+enableIndexedDbPersistence(db).catch(err => {
+  if (err.code === 'failed-precondition') console.warn('[Persist] Multiple tabs');
+  else if (err.code === 'unimplemented') console.warn('[Persist] Not supported');
+});
+
+/* ══ SYSTEM STATE CLASS ══ */
+class DispatcherState {
+  constructor() {
+    this.toastQueue   = [];
+    this.alertedIds   = new Set();   // מניעת toast כפול
+    this.demandMarkers= [];
+    this.showDemand   = false;
+    this.riskDrivers  = [];
+    this.lastSeenMap  = {};          // uid → timestamp
+  }
+}
+const DSP = new DispatcherState();
 
 let gMap=null,rCache={},stBuf=[],editRId=null;
 let allBusData=[],busGMarkers={},routePolylines=[],showRouteLines=false;
@@ -835,6 +942,63 @@ let routeMapInst=null,busLocMapInst=null,currentEndBusId=null;
 let etaWriteTimer=null,_srMatches=[];
 
 setInterval(()=>{const el=document.getElementById('clock');if(el)el.textContent=new Date().toTimeString().slice(0,5);},1000);
+
+/* ══ DEMAND MAP ══ */
+async function loadDemandData() {
+  if (!gMap) return;
+  // נקה סמנים קודמים
+  DSP.demandMarkers.forEach(c => c.setMap(null));
+  DSP.demandMarkers = [];
+  if (!DSP.showDemand) return;
+
+  const tenMinAgo = new Date(Date.now() - 600000);
+  try {
+    const snap = await getDocs(collection(db, 'ivr_requests'));
+    const stationCount = {};
+
+    snap.forEach(d => {
+      const r = d.data();
+      const ts = r.ts?.toDate?.();
+      if (!ts || ts < tenMinAgo) return;
+      const key = r.stationId || r.stationName;
+      if (!key) return;
+      if (!stationCount[key]) stationCount[key] = { count: 0, lat: r.lat, lng: r.lng, name: r.stationName || key };
+      stationCount[key].count++;
+    });
+
+    Object.values(stationCount).forEach(s => {
+      if (!s.lat || !s.lng) return;
+      const radius = Math.min(15 + s.count * 8, 60);
+      const circle = new google.maps.Circle({
+        center: { lat: s.lat, lng: s.lng },
+        radius,
+        map: gMap,
+        fillColor: '#EF4444',
+        fillOpacity: 0.35,
+        strokeColor: '#EF4444',
+        strokeWeight: 1.5,
+        zIndex: 50
+      });
+      const iw = new google.maps.InfoWindow({
+        content: `<div style="font-family:Rubik,sans-serif;direction:rtl;padding:8px;font-size:13px">
+          <b>${s.name}</b><br>
+          <span style="color:#ef4444">${s.count} פניות IVR ב-10 דק'</span>
+        </div>`
+      });
+      circle.addListener('click', () => iw.setPosition({ lat: s.lat, lng: s.lng }) || iw.open(gMap));
+      DSP.demandMarkers.push(circle);
+    });
+  } catch (e) {
+    console.warn('[DemandMap]', e.message);
+  }
+}
+
+window.toggleDemandMap = function() {
+  DSP.showDemand = !DSP.showDemand;
+  G('btn-demand').classList.toggle('on', DSP.showDemand);
+  loadDemandData();
+  if (DSP.showDemand) setInterval(loadDemandData, 60000); // רענון כל דקה
+};
 
 /* ── MAP ── */
 function initMap(){
@@ -845,10 +1009,39 @@ function initMap(){
 }
 window._onGm(initMap);
 
-function mkBusIcon(label,alert,sel){
-  const bg=alert?'#EF4444':sel?'#1e3a8a':'#2563EB';
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="38" viewBox="0 0 120 38"><rect x="2" y="2" width="116" height="34" rx="9" fill="${bg}" stroke="${sel?'white':'transparent'}" stroke-width="${sel?2:0}"/><text x="14" y="24" font-family="Rubik,Arial" font-size="16" fill="white">🚌</text><text x="36" y="24" font-family="Rubik,Arial" font-size="13" font-weight="700" fill="white">${label.substring(0,14)}</text></svg>`;
+function mkBusIcon(label, dup, sel, incident = false, overrideColor = null){
+  const fillColor = overrideColor || (incident ? '#EF4444' : sel ? '#F59E0B' : dup ? '#F59E0B' : '#2563EB');
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="120" height="38" viewBox="0 0 120 38"><rect x="2" y="2" width="116" height="34" rx="9" fill="${fillColor}" stroke="${sel?'white':'transparent'}" stroke-width="${sel?2:0}"/><text x="14" y="24" font-family="Rubik,Arial" font-size="16" fill="white">🚌</text><text x="36" y="24" font-family="Rubik,Arial" font-size="13" font-weight="700" fill="white">${label.substring(0,14)}</text></svg>`;
   return{url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg),scaledSize:new google.maps.Size(120,38),anchor:new google.maps.Point(0,38)};
+}
+
+/* ══ INCIDENT BUS BLINK ══ */
+const incidentBlinks = {}; // busId → intervalId
+
+function manageIncidentBlink(buses) {
+  const activeIncidents = new Set(buses.filter(b => b.incidentActive).map(b => b.id));
+
+  // הסר blink מאוטובוסים שכבר לא באירוע
+  Object.keys(incidentBlinks).forEach(id => {
+    if (!activeIncidents.has(id)) {
+      clearInterval(incidentBlinks[id]);
+      delete incidentBlinks[id];
+    }
+  });
+
+  // הוסף blink לאוטובוסים חדשים עם אירוע
+  activeIncidents.forEach(id => {
+    if (incidentBlinks[id]) return;
+    let blink = false;
+    incidentBlinks[id] = setInterval(() => {
+      if (!busGMarkers[id]) return;
+      const b = allBusData.find(x => x.id === id);
+      if (!b) return;
+      const col = blink ? '#EF4444' : '#FF8C00';
+      blink = !blink;
+      busGMarkers[id].marker.setIcon(mkBusIcon(b.routeName || id, false, selBusId === id, true, col));
+    }, 600);
+  });
 }
 
 /* ── HELPERS ── */
@@ -1175,21 +1368,180 @@ function startRT(){
     ['kp-a','kp-r','kp-s','kp-d'].forEach((id,i)=>{const el=G(id);if(el)el.textContent=[allBusData.length,rIds.size,stale,dup][i];});
     updMap(allBusData,rc);updEtaPanel(allBusData);updActiveRoutes(allBusData,rc);updAlerts(allBusData,rc);
     writeETAs(allBusData);
+    checkSystemAlerts(allBusData);
+    updRiskSidebar(allBusData);
+    manageIncidentBlink(allBusData);
   });
 }
 
-/* ── IVR ETA SYNC ── */
-function writeETAs(buses){
-  if(!auth.currentUser)return; // guard
-  clearTimeout(etaWriteTimer);
-  etaWriteTimer=setTimeout(async()=>{
-    for(const b of buses){
-      const etas=getStopETAs(b);if(!etas.length)continue;
-      const etaMap={};
-      etas.forEach((s,i)=>{if(!s.passed&&s.etaIso)etaMap[`stop_${i}`]={name:s.name,eta:s.etaIso,stopId:s.stopId||null};});
-      try{await setDoc(doc(db,'bus_eta',b.id),{routeId:b.routeId,routeName:b.routeName,driverName:b.driverName||'',stops:etaMap,updatedAt:serverTimestamp()},{merge:true});}catch{}
+/* ══ SYSTEM ALERTS CHECKER ══ */
+function checkSystemAlerts(buses) {
+  const now = Date.now();
+
+  buses.forEach(b => {
+    const u = b.updatedAt?.toDate?.();
+    const uid = b.id;
+    const routeName = b.routeName || b.id;
+
+    // 1. אוטובוס לא שידר 2+ דקות
+    if (u && now - u.getTime() > 120000) {
+      showSystemToast(
+        `📡 ${routeName} – אין שידור`,
+        `לא התקבל עדכון מיקום מאז ${u.toTimeString().slice(0,5)}`,
+        'err', `no_signal_${uid}`
+      );
     }
-  },15000);
+
+    // 2. סוללה נמוכה
+    if (b.batteryLevel != null && b.batteryLevel < 20 && !b.batteryCharging) {
+      showSystemToast(
+        `🔋 ${b.driverName || routeName} – סוללה ${b.batteryLevel}%`,
+        'הנהג עשוי להינתק בקרוב',
+        'warn', `low_bat_${uid}`
+      );
+    }
+
+    // 3. סטייה מהמסלול (>150מ' מכל תחנה)
+    if (b.lat && b.lng) {
+      const route = rCache[b.routeId];
+      if (route?.stations?.length) {
+        const minDist = Math.min(...route.stations.map(s =>
+          haversineDisp(b.lat, b.lng, s.lat, s.lng)
+        ));
+        if (minDist > 150) {
+          showSystemToast(
+            `🗺️ ${routeName} – סטייה ממסלול`,
+            `מרחק ${Math.round(minDist)}מ' מכל תחנה`,
+            'err', `deviate_${uid}`
+          );
+        }
+      }
+    }
+
+    // 4. אירוע פעיל — סדרן מודע
+    if (b.incidentActive && b.incidentType) {
+      showSystemToast(
+        `🚨 ${routeName} – ${b.incidentType}`,
+        `הנהג דיווח על עיכוב. ה-ETA עודכן.`,
+        'warn', `incident_${uid}_${b.incidentAt?.seconds || 'x'}`
+      );
+    }
+  });
+}
+
+/* ══ RISK SIDEBAR ══ */
+function updRiskSidebar(buses) {
+  const risks = [];
+  const now = Date.now();
+
+  buses.forEach(b => {
+    const reasons = [];
+    const u = b.updatedAt?.toDate?.();
+    if (u && now - u.getTime() > 120000) reasons.push('אין שידור GPS');
+    if (b.batteryLevel != null && b.batteryLevel < 20 && !b.batteryCharging) reasons.push(`סוללה ${b.batteryLevel}%`);
+    if (b.gpsAccuracy > 50) reasons.push(`GPS גרוע ±${Math.round(b.gpsAccuracy)}מ'`);
+    if (b.incidentActive) reasons.push(`אירוע: ${b.incidentType}`);
+    if (reasons.length) risks.push({ b, reasons });
+  });
+
+  DSP.riskDrivers = risks;
+  const count = risks.length;
+  const countEl = G('risk-count');
+  if (countEl) countEl.textContent = count;
+
+  const btn = G('btn-risk-sidebar');
+  if (btn) {
+    btn.style.display = count > 0 ? 'flex' : 'none';
+  }
+
+  const list = G('risk-sb-list');
+  if (!list) return;
+  if (!count) {
+    list.innerHTML = '<div style="color:var(--t3);font-size:13px;text-align:center;padding:20px">אין נהגים בסיכון</div>';
+    return;
+  }
+  list.innerHTML = risks.map(({ b, reasons }) =>
+    `<div class="risk-item" onclick="focusBus('${b.id}',${b.lat},${b.lng})">
+      <div class="risk-item-nm">🚌 ${b.routeName || b.id}</div>
+      <div style="font-size:11px;color:var(--t2)">👨‍✈️ ${b.driverName || '—'}</div>
+      <div class="risk-item-reason">${reasons.join(' · ')}</div>
+    </div>`
+  ).join('');
+}
+
+window.toggleRiskSidebar = function() {
+  G('risk-sidebar').classList.toggle('open');
+};
+window.closeRiskSidebar = function() {
+  G('risk-sidebar').classList.remove('open');
+};
+
+// Haversine לסדרן (עלול שיש שם haversine אחר)
+function haversineDisp(la1, ln1, la2, ln2) {
+  const R = 6371000,
+    dL = (la2 - la1) * Math.PI / 180,
+    dN = (ln2 - ln1) * Math.PI / 180,
+    a = Math.sin(dL / 2) ** 2 + Math.cos(la1 * Math.PI / 180) * Math.cos(la2 * Math.PI / 180) * Math.sin(dN / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/* ══ SYSTEM ALERTS — TOAST ══ */
+function showSystemToast(title, sub, type = 'err', id = null) {
+  // מניעת כפילות לאותו אירוע
+  if (id && DSP.alertedIds.has(id)) return;
+  if (id) DSP.alertedIds.add(id);
+
+  const container = G('toast-container');
+  const el = document.createElement('div');
+  el.className = `sys-toast ${type}`;
+  el.innerHTML = `
+    <div class="sys-toast-ic">${type === 'err' ? '🚨' : type === 'warn' ? '⚠️' : type === 'ok' ? '✅' : 'ℹ️'}</div>
+    <div class="sys-toast-body">
+      <div class="sys-toast-title">${title}</div>
+      <div class="sys-toast-sub">${sub}</div>
+    </div>
+    <button class="sys-toast-x" onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(el);
+
+  // הסר אחרי 7 שניות
+  setTimeout(() => el.remove(), 7000);
+
+  // נקה alertedId אחרי 3 דקות לאפשר התראה חוזרת
+  if (id) setTimeout(() => DSP.alertedIds.delete(id), 180000);
+}
+
+/* ══ IVR ETA SYNC (עם תמיכה באירועים) ══ */
+function writeETAs(buses) {
+  if (!auth.currentUser) return;
+  clearTimeout(etaWriteTimer);
+  etaWriteTimer = setTimeout(async () => {
+    for (const b of buses) {
+      const etas = getStopETAs(b);
+      if (!etas.length) continue;
+      const etaMap = {};
+      etas.forEach((s, i) => {
+        if (!s.passed && s.etaIso) etaMap[`stop_${i}`] = {
+          name: s.name, eta: s.etaIso, stopId: s.stopId || null
+        };
+      });
+
+      // הודעת IVR מיוחדת לאירוע
+      const ivrMsg = b.incidentActive
+        ? `חל עיכוב עקב ${b.incidentType || 'תקלה'}, זמן ההגעה התעדכן`
+        : null;
+
+      try {
+        await setDoc(doc(db, 'bus_eta', b.id), {
+          routeId: b.routeId, routeName: b.routeName,
+          driverName: b.driverName || '',
+          stops: etaMap, updatedAt: serverTimestamp(),
+          incidentActive: b.incidentActive || false,
+          incidentType: b.incidentType || null,
+          ivrMessage: ivrMsg
+        }, { merge: true });
+      } catch {}
+    }
+  }, 15000);
 }
 
 /* ── MAP ── */
@@ -1199,7 +1551,7 @@ function updMap(buses,rc){
   Object.keys(busGMarkers).forEach(id=>{if(!ids.has(id)){busGMarkers[id].marker.setMap(null);delete busGMarkers[id];}});
   buses.forEach(b=>{
     const pos={lat:b.lat,lng:b.lng},dp=rc[b.routeId]>1,isSel=selBusId===b.id;
-    const icon=mkBusIcon(b.routeName||b.routeId,dp,isSel);
+    const icon=mkBusIcon(b.routeName||b.routeId,dp,isSel, b.incidentActive);
     const etas=getStopETAs(b),next=etas.find(s=>!s.passed);
     const pop=buildPopup(b,etas,next);
     if(busGMarkers[b.id]){busGMarkers[b.id].marker.setPosition(pos);busGMarkers[b.id].marker.setIcon(icon);busGMarkers[b.id].iw.setContent(pop);}
@@ -1212,6 +1564,36 @@ function updMap(buses,rc){
   });
 }
 
+/* ══ DRIVER HEALTH CHIPS ══ */
+function buildHealthChips(b) {
+  const chips = [];
+
+  // סוללה
+  if (b.batteryLevel != null) {
+    const cls = b.batteryLevel < 20 ? 'bat-low' : b.batteryLevel < 40 ? 'bat-med' : 'bat-ok';
+    const ic  = b.batteryCharging ? '⚡' : '🔋';
+    chips.push(`<span class="dh-chip ${cls}">${ic} ${b.batteryLevel}%</span>`);
+  }
+
+  // GPS accuracy
+  if (b.gpsAccuracy != null) {
+    const cls = b.gpsAccuracy > 50 ? 'gps-bad' : 'gps-ok';
+    chips.push(`<span class="dh-chip ${cls}">📡 ±${Math.round(b.gpsAccuracy)}מ'</span>`);
+  }
+
+  // מהירות
+  if (b.speed != null) {
+    chips.push(`<span class="dh-chip spd">🚗 ${Math.round(b.speed * 3.6)} קמ"ש</span>`);
+  }
+
+  // אירוע פעיל
+  if (b.incidentActive) {
+    chips.push(`<span class="dh-chip inc">⚠️ ${b.incidentType || 'עיכוב'}</span>`);
+  }
+
+  return chips.length ? `<div class="drv-health">${chips.join('')}</div>` : '';
+}
+
 function buildPopup(b,etas,next){
   const u=b.updatedAt?.toDate?.();
   const rows=etas.slice(0,6).map((s,i)=>{const isCur=!s.passed&&i===etas.findIndex(x=>!x.passed);
@@ -1220,6 +1602,7 @@ function buildPopup(b,etas,next){
   return`<div style="font-family:Rubik,sans-serif;direction:rtl;padding:12px;min-width:185px">
     <div style="font-weight:700;font-size:15px;margin-bottom:4px">🚌 ${b.routeName||b.routeId}</div>
     ${b.driverName?`<div style="font-size:12px;color:#64748b;margin-bottom:3px">👨‍✈️ ${b.driverName}</div>`:''}
+    ${buildHealthChips(b)}
     ${next?`<div style="font-size:12px;color:#2563eb;font-weight:600;margin-bottom:4px">▶ ${next.name} · ${fmtTime(next.etaIso)}</div>`:''}
     <div style="font-size:11px;color:#64748b">⏱ לפני ${u?timeSince(u):'—'}</div>
     ${rows?`<div style="margin-top:7px;border-top:1px solid #e2e8f0;padding-top:7px">${rows}</div>`:''}
@@ -1246,6 +1629,10 @@ function updEtaPanel(buses){
       return`<div class="eta-sr"><div class="eta-dot ${dc}">${s.passed?'✓':i+1}</div><div class="eta-sn ${s.passed?'done':''}">${s.name}</div><div class="eta-t ${s.passed?'done':dc==='cur'?'live':'old'}">${s.passed?'✓':fmtTime(s.etaIso)}</div></div>`;}).join('');
     return`<div class="eta-card ${isSel?'sel':''}" onclick="focusBus('${b.id}',${b.lat},${b.lng})">
       <div class="eta-bus-hdr"><div><div class="eta-bus-nm">🚌 ${b.routeName||b.routeId}</div><div class="eta-bus-drv">${b.driverName||'—'}</div></div><span class="eta-badge ${stale?'stale':'live'}">${stale?'⏱':'● חי'}</span></div>
+      ${buildHealthChips(b)}
+      ${b.incidentActive ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);
+        border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;color:var(--red);margin-bottom:5px">
+        🚨 ${b.incidentType || 'עיכוב פעיל'}</div>` : ''}
       ${next?`<div class="eta-next"><div class="eta-next-lbl">תחנה הבאה</div><div class="eta-next-name">${next.name}</div><div class="eta-next-time">⏰ ${fmtTime(next.etaIso)} · ${fmtMin(next.etaIso)}</div></div>`:'<div class="eta-next" style="color:#64748b;font-size:12px">✅ כל התחנות עברו</div>'}
       <div class="eta-stops">${rows}</div>
       ${etas.length>5?`<div style="font-size:10px;color:var(--t3);text-align:center;margin-top:3px">+${etas.length-5} עוד</div>`:''}
@@ -1291,6 +1678,12 @@ function updActiveRoutes(buses,rc){
       <div class="rc-nm">${routeName}</div>
       <div class="rc-meta"><span>🚏 ${stops.length} תחנות</span><span class="badge ${hasActive?stale?'stale':'live':'off'}">${hasActive?stale?'⏱ מאחר':'● פעיל':'○ לא פעיל'}</span></div>
       ${first?`<div class="rc-drv-info">👨‍✈️ ${first.driverName||'—'} ${first.speed?'· '+Math.round(first.speed*3.6)+' קמ"ש':''}</div>`:''}
+      ${first ? buildHealthChips(first) : ''}
+      ${first?.incidentActive ? `
+        <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;
+          padding:6px 10px;font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px;animation:flash 1s infinite">
+          🚨 אירוע פעיל: ${first.incidentType || 'עיכוב'}
+        </div>` : ''}
       ${dp?'<div style="font-size:11px;color:var(--red);margin-bottom:7px">⚠️ שני נהגים על אותו קו</div>':''}
       <div class="rc-stops-mini">${stops.slice(0,4).map((s,i)=>`<div class="rc-stop-item"><div class="rc-stop-num">${i+1}</div>${s.name}</div>`).join('')}${stops.length>4?`<div class="rc-stop-item" style="color:var(--t3)">+${stops.length-4} עוד</div>`:''}</div>
       <div class="rc-ac">
@@ -1563,6 +1956,7 @@ window.dlReport=async function(type){
     {id:'pg-routes',ic:'🛣️', lb:'קווים'},
     {id:'pg-alerts',ic:'⚠️', lb:'התראות'},
     {id:'pg-users', ic:'👥', lb:'נהגים'},
+    // כפתור סיכון — עדיף לשים כ-floating button בצד
   ];
 
   // Build tabs HTML
